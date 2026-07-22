@@ -540,7 +540,8 @@ p { margin: 0 0 12px; }
   margin: 8px auto 20px;
 }
 .qr-box svg { width: 100%; height: 100%; }
-.logo-tree { width: 90px; height: 90px; margin: 0 auto; }
+.logo-tree { width: 90px; height: 90px; margin: 0 auto; object-fit: contain; }
+.logo-full { width: 220px; height: auto; margin: 0 auto 4px; display: block; }
 
 .pin-display { display:flex; gap:10px; justify-content:center; margin: 18px 0; }
 .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--brown-soft); }

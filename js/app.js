@@ -74,18 +74,13 @@ function successSheet(extraHtml = "") {
     </div>`);
 }
 
-/* Tree logo (SVG) */
+/* Logo CSB (albero) – file SVG vettoriale */
 function treeLogo(cls = "logo-tree") {
-  return `<svg class="${cls}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CSB">
-    <circle cx="50" cy="45" r="42" fill="#f3ead9"/>
-    <path d="M50 74V50" stroke="#7a5a3d" stroke-width="5" stroke-linecap="round"/>
-    <path d="M50 58c-6-2-11-7-12-13" stroke="#7a5a3d" stroke-width="4" stroke-linecap="round"/>
-    <path d="M50 54c6-2 10-6 12-11" stroke="#7a5a3d" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="50" cy="34" r="15" fill="#7d9a6b"/>
-    <circle cx="35" cy="42" r="11" fill="#8aa877"/>
-    <circle cx="65" cy="42" r="11" fill="#6f8c5c"/>
-    <circle cx="50" cy="46" r="12" fill="#7d9a6b"/>
-  </svg>`;
+  return `<img src="assets/logo-csb.svg" class="${cls}" alt="Centro Sanitario Bregaglia">`;
+}
+/* Logo CSB completo (albero + scritta) */
+function fullLogo(cls = "logo-full") {
+  return `<img src="assets/logo-csb-full.svg" class="${cls}" alt="Centro Sanitario Bregaglia">`;
 }
 
 /* ------------------- Header + Nav ------------------- */
@@ -152,8 +147,8 @@ function render() {
 /* ================= SCHERMATE FULL ================= */
 function renderWelcome() {
   return `<div class="center-screen">
-    ${treeLogo('logo-tree')}
-    <h1 style="font-size:2rem;margin:14px 0 2px;color:#5d4530">MyCSB</h1>
+    ${fullLogo('logo-full')}
+    <h1 style="font-size:2rem;margin:10px 0 2px;color:#5d4530">MyCSB</h1>
     <p class="muted" style="max-width:280px">${t("welcome_sub")}</p>
     <div class="qr-box"><img src="assets/qr.svg" alt="QR code MyCSB" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona il QR code per accedere':'QR-Code scannen zum Öffnen'}</p>
