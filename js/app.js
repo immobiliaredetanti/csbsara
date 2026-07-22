@@ -13,6 +13,9 @@ const state = {
   history: [],
 };
 
+/* Indirizzo ufficiale CSB per mappa e indicazioni (Google Maps) */
+const CSB_MAPS_Q = encodeURIComponent("Centro Sanitario Bregaglia, Flin 5, 7606 Promontogno, Svizzera");
+
 /* ------------------- Helpers ------------------- */
 const $ = (sel, root = document) => root.querySelector(sel);
 const t = (k) => (I18N[state.lang] && I18N[state.lang][k]) || I18N.it[k] || k;
@@ -729,11 +732,16 @@ function svcContacts() {
       <div class="info-line" style="margin-top:8px"><span class="k">Email</span><span class="v">info@csbregaglia.ch</span></div>
       <div class="info-line"><span class="k">Web</span><span class="v">www.csbregaglia.ch</span></div>
       <div class="info-line"><span class="k">${de?"Besuchszeiten":"Orari di visita"}</span><span class="v">${de?DATA.org.visitHours_de:DATA.org.visitHours_it}</span></div>
-      <div style="height:130px;border-radius:14px;margin-top:12px;background:linear-gradient(135deg,#dfe8d6,#cbd8c0);display:flex;align-items:center;justify-content:center;font-size:40px;border:1px solid var(--line)">🗺️</div>
+      <div style="border-radius:14px;margin-top:12px;overflow:hidden;border:1px solid var(--line);height:190px;background:#e8e8e8">
+        <iframe title="Centro Sanitario Bregaglia" width="100%" height="100%" style="border:0;display:block"
+          loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          src="https://maps.google.com/maps?q=${CSB_MAPS_Q}&amp;z=15&amp;output=embed"></iframe>
+      </div>
       <div class="btn-row mt-16">
         <a class="btn btn-secondary" href="tel:+41818381199" style="text-decoration:none">📞 ${t("call")}</a>
-        <button class="btn btn-secondary" onclick="toast('${de?'Route wird geöffnet…':'Apertura indicazioni…'}')">🧭 ${t("directions")}</button>
+        <a class="btn btn-primary" href="https://www.google.com/maps/dir/?api=1&amp;destination=${CSB_MAPS_Q}" target="_blank" rel="noopener" style="text-decoration:none">🧭 ${t("directions")}</a>
       </div>
+      <a class="btn btn-ghost mt-8" href="https://www.google.com/maps/search/?api=1&amp;query=${CSB_MAPS_Q}" target="_blank" rel="noopener" style="text-decoration:none">${de?"In Google Maps öffnen":"Apri in Google Maps"} ↗</a>
     </div>
   `;
 }
