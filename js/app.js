@@ -74,13 +74,13 @@ function successSheet(extraHtml = "") {
     </div>`);
 }
 
-/* Logo CSB (albero) – file SVG vettoriale */
+/* Logo CSB ufficiale (albero) – file SVG vettoriale */
 function treeLogo(cls = "logo-tree") {
-  return `<img src="assets/logo-csb.svg" class="${cls}" alt="Centro Sanitario Bregaglia">`;
+  return `<img src="assets/logo-csb.svg?v=4" class="${cls}" alt="Centro Sanitario Bregaglia">`;
 }
-/* Logo CSB completo (albero + scritta) */
+/* Logo CSB ufficiale completo (albero + scritta) */
 function fullLogo(cls = "logo-full") {
-  return `<img src="assets/logo-csb-full.svg" class="${cls}" alt="Centro Sanitario Bregaglia">`;
+  return `<img src="assets/logo-csb-full.svg?v=4" class="${cls}" alt="Centro Sanitario Bregaglia">`;
 }
 
 /* ------------------- Header + Nav ------------------- */
