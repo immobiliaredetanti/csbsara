@@ -5,36 +5,43 @@
    ========================================================= */
 
 :root {
-  /* Colori base */
-  --cream: #faf5ec;
-  --cream-2: #f3ead9;
-  --beige: #e7d8bf;
-  --beige-dark: #d8c3a1;
-  --sand: #cbb392;
-  --brown: #7a5a3d;
-  --brown-dark: #5d4530;
-  --brown-soft: #9b7a58;
+  /* Palette UFFICIALE CSB – sincronizzata con csbregaglia.ch
+     Bordeaux (accento), taupe (neutro), bianco/grigio, testo grigio scuro. */
+  --cream: #f4f2ec;      /* sfondo app – bianco caldo */
+  --cream-2: #eae4d8;    /* superfici tenui, chip, icone */
+  --beige: #e2dccc;
+  --beige-dark: #c9bda6; /* taupe chiaro – bordi */
+  --sand: #b3a082;
+  --brown: #98303d;      /* BORDEAUX – accento primario CSB */
+  --brown-dark: #3c3630; /* grigio-bruno scuro – titoli e testo forte */
+  --brown-soft: #9a8f79; /* taupe – sottotitoli / neutro CSB */
   --white: #ffffff;
 
+  /* Colori marchio dedicati */
+  --wine: #98303d;
+  --wine-dark: #7e2833;
+  --taupe: #9a8f79;
+  --taupe-dark: #857a64;
+
   /* Accenti */
-  --leaf: #7d9a6b;
-  --leaf-dark: #5f7c50;
+  --leaf: #6f8a5f;       /* verde tenue – solo stati "confermato/ok" */
+  --leaf-dark: #566f49;
   --sky: #6f8fa6;
-  --amber: #d59a3c;
-  --danger: #b5563f;
+  --amber: #c98a34;
+  --danger: #cc2f2f;     /* rosso emergenza (come pulsante 144 del sito) */
   --ok: #5f8a5f;
 
   /* Testo */
-  --ink: #3a2e24;
-  --ink-soft: #6f6152;
-  --ink-faint: #9c8d7b;
+  --ink: #34302a;
+  --ink-soft: #6c665d;
+  --ink-faint: #9a9186;
 
   /* Superfici */
-  --line: #e6dbc8;
-  --line-soft: #efe6d5;
-  --shadow: 0 6px 22px rgba(93, 69, 48, 0.10);
-  --shadow-sm: 0 2px 8px rgba(93, 69, 48, 0.08);
-  --shadow-lg: 0 14px 40px rgba(93, 69, 48, 0.18);
+  --line: #e5e0d5;
+  --line-soft: #efeae0;
+  --shadow: 0 6px 22px rgba(60, 54, 48, 0.10);
+  --shadow-sm: 0 2px 8px rgba(60, 54, 48, 0.08);
+  --shadow-lg: 0 14px 40px rgba(60, 54, 48, 0.18);
 
   /* Forma */
   --radius: 18px;
@@ -48,7 +55,7 @@
 
   /* Tipografia grande e leggibile */
   --fs-base: 17px;
-  --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font: "Lato", "Open Sans", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -174,7 +181,7 @@ img { max-width: 100%; display: block; }
 
 /* ---------- Tipografia ---------- */
 h1, h2, h3 { color: var(--brown-dark); margin: 0 0 .4em; line-height: 1.25; }
-.page-title { font-size: 1.5rem; font-weight: 800; }
+.page-title { font-size: 1.5rem; font-weight: 800; color: var(--wine); }
 .section-title { font-size: 1.15rem; font-weight: 700; margin: 22px 0 12px; }
 .lead { color: var(--ink-soft); font-size: 1rem; margin: 0 0 16px; }
 p { margin: 0 0 12px; }

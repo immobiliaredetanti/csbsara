@@ -76,11 +76,11 @@ function successSheet(extraHtml = "") {
 
 /* Logo CSB ufficiale (albero) – file SVG vettoriale */
 function treeLogo(cls = "logo-tree") {
-  return `<img src="assets/logo-csb.svg?v=4" class="${cls}" alt="Centro Sanitario Bregaglia">`;
+  return `<img src="assets/logo-csb.svg?v=5" class="${cls}" alt="Centro Sanitario Bregaglia">`;
 }
 /* Logo CSB ufficiale completo (albero + scritta) */
 function fullLogo(cls = "logo-full") {
-  return `<img src="assets/logo-csb-full.svg?v=4" class="${cls}" alt="Centro Sanitario Bregaglia">`;
+  return `<img src="assets/logo-csb-full.svg?v=5" class="${cls}" alt="Centro Sanitario Bregaglia">`;
 }
 
 /* ------------------- Header + Nav ------------------- */
@@ -148,7 +148,7 @@ function render() {
 function renderWelcome() {
   return `<div class="center-screen">
     ${fullLogo('logo-full')}
-    <h1 style="font-size:2rem;margin:10px 0 2px;color:#5d4530">MyCSB</h1>
+    <h1 style="font-size:2rem;margin:10px 0 2px;color:var(--wine)">MyCSB</h1>
     <p class="muted" style="max-width:280px">${t("welcome_sub")}</p>
     <div class="qr-box"><img src="assets/qr.svg" alt="QR code MyCSB" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona il QR code per accedere':'QR-Code scannen zum Öffnen'}</p>
@@ -250,7 +250,7 @@ function viewHome() {
     </div>
 
     ${next ? `
-    <div class="card" style="background:linear-gradient(135deg,#7a5a3d,#9b7a58);color:#fff;border:none" onclick="go('bookings')">
+    <div class="card" style="background:linear-gradient(135deg,#8b8069,#a89a80);color:#fff;border:none" onclick="go('bookings')">
       <div class="faint" style="color:#f3ead9;margin-bottom:4px">${t("next_appointment")}</div>
       <div class="flex-between">
         <div>
@@ -485,10 +485,10 @@ function svcCareHome() {
       <div class="card-title">${de?"Aktivitäten":"Attività"}</div>
       <div class="pill-row">${(de?["Gruppenaktivitäten","Musik","Spaziergänge","Feste","Physiotherapie"]:["Attività di gruppo","Musica","Passeggiate","Feste","Fisioterapia"]).map(x=>`<span class="badge info">${x}</span>`).join("")}</div>
     </div>
-    <div class="card" style="background:linear-gradient(135deg,#7d9a6b,#5f7c50);color:#fff;border:none;cursor:pointer" onclick="openFamilyArea()">
+    <div class="card" style="background:linear-gradient(135deg,#98303d,#7e2833);color:#fff;border:none;cursor:pointer" onclick="openFamilyArea()">
       <div class="flex-between">
         <div><div style="font-weight:800;font-size:1.1rem">🔒 ${de?"Familienbereich":"Area famiglia"}</div>
-        <div style="color:#eef3e9">${de?"Reservierter Zugang für Angehörige":"Accesso riservato ai familiari autorizzati"}</div></div>
+        <div style="color:#f6ebec">${de?"Reservierter Zugang für Angehörige":"Accesso riservato ai familiari autorizzati"}</div></div>
         <span style="font-size:20px">›</span>
       </div>
     </div>
@@ -1021,7 +1021,7 @@ function viewFinal() {
   return `
     <div style="text-align:center;padding:14px 0">
       ${treeLogo('logo-tree')}
-      <h1 style="font-size:2rem;margin:12px 0 4px;color:var(--brown-dark)">MyCSB</h1>
+      <h1 style="font-size:2rem;margin:12px 0 4px;color:var(--wine)">MyCSB</h1>
       <p style="font-size:1.15rem;font-weight:700;color:var(--brown-soft)">${t("final_slogan")}</p>
     </div>
     <div class="card pad-lg">
