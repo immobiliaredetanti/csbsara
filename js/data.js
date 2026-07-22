@@ -207,11 +207,12 @@ const DATA = {
   ],
 
   spitexServices: [
+    { it: "Cure a domicilio", de: "Pflege zu Hause" },
     { it: "Igiene personale", de: "Körperpflege" },
-    { it: "Supporto ai pasti", de: "Unterstützung Mahlzeiten" },
     { it: "Cura delle ferite", de: "Wundpflege" },
-    { it: "Somministrazione farmaci", de: "Medikamente" },
-    { it: "Accompagnamento", de: "Begleitung" },
+    { it: "Aiuto domestico e spesa", de: "Haushalt und Einkauf" },
+    { it: "Consegna pasti", de: "Mahlzeitendienst" },
+    { it: "Accompagnamento sociale", de: "Soziale Begleitung" },
   ],
   spitexPlanned: [
     { icon:"🧼", title_it:"Igiene personale", title_de:"Körperpflege", when_it:"Lun 21.07 · 08:00–10:00", when_de:"Mo 21.07 · 08:00–10:00", who:"Sara", status:"confirmed" },
@@ -280,16 +281,29 @@ const DATA = {
     { icon:"🎶", title_it:"Pomeriggio musicale in casa anziani", title_de:"Musiknachmittag im Altersheim", date:"28.09.2026", time:"15:30", place_it:"Casa anziani – sala comune", place_de:"Altersheim – Gemeinschaftsraum", desc_it:"Aperto a familiari e ospiti.", desc_de:"Offen für Angehörige und Gäste." },
   ],
 
+  // Contatti UFFICIALI del Centro Sanitario Bregaglia (fonte: csbregaglia.ch)
   contacts: [
-    { icon:"☎️", label_it:"Centralino", label_de:"Zentrale", value:"+41 81 822 00 00", emergency:false },
+    { icon:"☎️", label_it:"Centralino", label_de:"Zentrale", value:"+41 81 838 11 99", emergency:false },
     { icon:"🚑", label_it:"Emergenze", label_de:"Notfall", value:"144", emergency:true },
-    { icon:"🩺", label_it:"Studio medico", label_de:"Arztpraxis", value:"+41 81 822 00 10", emergency:false },
-    { icon:"🤸", label_it:"Fisioterapia", label_de:"Physiotherapie", value:"+41 81 822 00 20", emergency:false },
-    { icon:"🏠", label_it:"Spitex", label_de:"Spitex", value:"+41 81 822 00 30", emergency:false },
-    { icon:"☕", label_it:"Caffetteria", label_de:"Cafeteria", value:"+41 81 822 00 40", emergency:false },
-    { icon:"🧺", label_it:"Lavanderia", label_de:"Wäscherei", value:"+41 81 822 00 50", emergency:false },
-    { icon:"📋", label_it:"Amministrazione", label_de:"Verwaltung", value:"+41 81 822 00 60", emergency:false },
+    { icon:"🩺", label_it:"Studio medico", label_de:"Arztpraxis", value:"+41 81 838 11 45", emergency:false },
+    { icon:"🤸", label_it:"Fisioterapia", label_de:"Physiotherapie", value:"+41 81 838 11 25", emergency:false },
+    { icon:"🏠", label_it:"Spitex", label_de:"Spitex", value:"+41 81 822 18 04", emergency:false },
+    { icon:"🛏️", label_it:"Reparto degenza (1° piano)", label_de:"Abteilung (1. Stock)", value:"+41 81 838 11 30", emergency:false },
+    { icon:"🛏️", label_it:"Reparto degenza (2° piano)", label_de:"Abteilung (2. Stock)", value:"+41 81 838 11 90", emergency:false },
+    { icon:"⚕️", label_it:"Studio medico Maloja", label_de:"Arztpraxis Maloja", value:"+41 81 553 50 90", emergency:false },
   ],
+  // Dati istituzionali ufficiali
+  org: {
+    name: "Centro Sanitario Bregaglia",
+    address_it: "Flin 5, 7606 Promontogno (GR)",
+    address_de: "Flin 5, 7606 Promontogno (GR)",
+    address2_it: "Sede Maloja: Strada Cantonale 370, 7516 Maloja",
+    address2_de: "Standort Maloja: Strada Cantonale 370, 7516 Maloja",
+    email: "info@csbregaglia.ch",
+    web: "www.csbregaglia.ch",
+    visitHours_it: "Tutti i giorni 10:00–12:00 · 14:00–20:00",
+    visitHours_de: "Täglich 10:00–12:00 · 14:00–20:00",
+  },
 
   // Casa anziani – diario area famiglia
   careHomeDiary: [

@@ -326,7 +326,7 @@ function svcMedical() {
       <div class="card-title">${de?"Öffnungszeiten":"Orari"}</div>
       <div class="info-line"><span class="k">${de?"Mo–Fr":"Lun–Ven"}</span><span class="v">08:00–12:00 · 14:00–17:00</span></div>
       <div class="info-line"><span class="k">${de?"Sa":"Sab"}</span><span class="v">08:00–11:00</span></div>
-      <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 822 00 10</span></div>
+      <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 838 11 45</span></div>
     </div>
     <div class="card">
       <div class="card-title">${de?"Ärzteteam":"Medici disponibili"}</div>
@@ -421,6 +421,10 @@ function bookPhysio(gym) {
 function svcSpitex() {
   const de = state.lang === 'de';
   return svcHead("🏠","s_spitex", de?"Hauspflege für Sie und Ihre Angehörigen.":"Assistenza domiciliare per lei e i suoi familiari.") + `
+    <div class="card">
+      <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 822 18 04</span></div>
+      <div class="info-line"><span class="k">Email</span><span class="v">spitex@csbregaglia.ch</span></div>
+    </div>
     <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Angehörige senden eine Anfrage mit Wünschen. Der Spitex-Koordinator prüft und bestätigt oder schlägt eine Alternative vor.":"Il familiare invia una richiesta con le preferenze. Il coordinatore Spitex verifica e conferma o propone un'alternativa."}</span></div>
     <div class="section-title" style="margin-top:8px">${de?"Geplante Einsätze":"Interventi programmati"}</div>
     ${DATA.spitexPlanned.map(p=>`
@@ -465,16 +469,18 @@ function svcCareHome() {
   const de = state.lang === 'de';
   return svcHead("🌳","s_home", de?"Wohnen, Betreuung und Familienbereich.":"Residenza, cura e area famiglia.") + `
     <div class="card">
-      <div class="card-title">${de?"Zwei Abteilungen":"I due reparti"}</div>
-      <div class="list-row"><div class="lr-ico">🌿</div><div class="lr-body"><div class="lr-title">${de?"Abteilung Pflege":"Reparto cura"}</div><div class="lr-sub">${de?"Langzeitpflege und Betreuung":"Cure di lunga durata e assistenza"}</div></div></div>
-      <div class="list-row"><div class="lr-ico">🏡</div><div class="lr-body"><div class="lr-title">${de?"Abteilung Wohnen":"Reparto residenza"}</div><div class="lr-sub">${de?"Betreutes Wohnen":"Abitare assistito"}</div></div></div>
+      <div class="card-title">${de?"Abteilungen":"I reparti"}</div>
+      <div class="list-row"><div class="lr-ico">🩺</div><div class="lr-body"><div class="lr-title">${de?"Akutabteilung":"Reparto acuto"}</div><div class="lr-sub">${de?"4 Betten · Akutpflege":"4 letti · cure acute"}</div></div></div>
+      <div class="list-row"><div class="lr-ico">🌿</div><div class="lr-body"><div class="lr-title">${de?"Langzeitpflege":"Reparto lungodegenza"}</div><div class="lr-sub">${de?"34 Plätze · Langzeitpflege":"34 posti letto · cure di lunga durata"}</div></div></div>
+      <div class="list-row"><div class="lr-ico">🧠</div><div class="lr-body"><div class="lr-title">${de?"Demenzabteilung":"Reparto demenza"}</div><div class="lr-sub">${de?"Demenz und neurodegenerative Erkrankungen":"Demenza e malattie neurodegenerative"}</div></div></div>
     </div>
     <div class="card">
       <div class="card-title">${de?"Besuchszeiten":"Orari di visita"}</div>
-      <div class="info-line"><span class="k">${de?"Täglich":"Tutti i giorni"}</span><span class="v">10:00–12:00 · 14:00–18:00</span></div>
-      <div class="info-line"><span class="k">${de?"Kontakt":"Contatti"}</span><span class="v">+41 81 822 00 00</span></div>
-      <div class="info-line"><span class="k">${de?"Bezugsperson":"Referente"}</span><span class="v">Claudia (${de?"Pflege":"cura"})</span></div>
+      <div class="info-line"><span class="k">${de?"Täglich":"Tutti i giorni"}</span><span class="v">10:00–12:00 · 14:00–20:00</span></div>
+      <div class="info-line"><span class="k">${de?"Abteilung 1. Stock":"Reparto 1° piano"}</span><span class="v">+41 81 838 11 30</span></div>
+      <div class="info-line"><span class="k">${de?"Abteilung 2. Stock":"Reparto 2° piano"}</span><span class="v">+41 81 838 11 90</span></div>
     </div>
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Eine telefonische Voranmeldung bei der Abteilung vor dem Besuch ist erwünscht.":"È gradito l'annuncio telefonico al reparto prima di effettuare la visita."}</span></div>
     <div class="card">
       <div class="card-title">${de?"Aktivitäten":"Attività"}</div>
       <div class="pill-row">${(de?["Gruppenaktivitäten","Musik","Spaziergänge","Feste","Physiotherapie"]:["Attività di gruppo","Musica","Passeggiate","Feste","Fisioterapia"]).map(x=>`<span class="badge info">${x}</span>`).join("")}</div>
@@ -608,6 +614,7 @@ function svcLaundry() {
   const o = DATA.laundryOrder;
   const stepLabels = { received: t("st_received"), processing: t("st_processing"), ready: t("st_ready") };
   return svcHead("🧺","s_laundry", de?"Wäscheservice für externe Kunden.":"Servizio lavanderia per clienti esterni.") + `
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Die Wäscherei des CSB steht auch externen Kunden offen: Hotels, Restaurants und Ferienwohnungen.":"La lavanderia del CSB è aperta anche a clienti esterni: hotel, ristoranti e case di vacanza."}</span></div>
     <div class="card">
       <div class="card-title">${de?"Preisliste":"Listino prezzi"}</div>
       ${DATA.laundryServices.map(s=>`<div class="info-line"><span class="k">${de?s.de:s.it}</span><span class="v">${s.price}</span></div>`).join("")}
@@ -717,10 +724,14 @@ function svcContacts() {
     </div>
     <div class="card">
       <div class="card-title">📍 ${de?"Adresse":"Indirizzo"}</div>
-      <p class="muted mb-0">Centro Sanitario Bregaglia<br>Via Principale, 7605 Stampa (GR)</p>
+      <p class="muted mb-0">Centro Sanitario Bregaglia<br>Flin 5, 7606 Promontogno (GR)</p>
+      <p class="faint mt-8" style="margin-bottom:0">${de?"Standort Maloja":"Sede Maloja"}: Strada Cantonale 370, 7516 Maloja</p>
+      <div class="info-line" style="margin-top:8px"><span class="k">Email</span><span class="v">info@csbregaglia.ch</span></div>
+      <div class="info-line"><span class="k">Web</span><span class="v">www.csbregaglia.ch</span></div>
+      <div class="info-line"><span class="k">${de?"Besuchszeiten":"Orari di visita"}</span><span class="v">${de?DATA.org.visitHours_de:DATA.org.visitHours_it}</span></div>
       <div style="height:130px;border-radius:14px;margin-top:12px;background:linear-gradient(135deg,#dfe8d6,#cbd8c0);display:flex;align-items:center;justify-content:center;font-size:40px;border:1px solid var(--line)">🗺️</div>
       <div class="btn-row mt-16">
-        <a class="btn btn-secondary" href="tel:+41818220000" style="text-decoration:none">📞 ${t("call")}</a>
+        <a class="btn btn-secondary" href="tel:+41818381199" style="text-decoration:none">📞 ${t("call")}</a>
         <button class="btn btn-secondary" onclick="toast('${de?'Route wird geöffnet…':'Apertura indicazioni…'}')">🧭 ${t("directions")}</button>
       </div>
     </div>
