@@ -88,29 +88,6 @@ function treeLogo(cls = "logo-tree") {
   </svg>`;
 }
 
-/* QR decorativo (pattern deterministico) */
-function qrSvg() {
-  const n = 21, cell = 100 / n;
-  let rects = "";
-  const seed = [3,7,11,13,17,19,23];
-  for (let y = 0; y < n; y++) {
-    for (let x = 0; x < n; x++) {
-      const finder = (x < 7 && y < 7) || (x >= n-7 && y < 7) || (x < 7 && y >= n-7);
-      let on;
-      if (finder) {
-        const fx = x % (n), fy = y;
-        const lx = x >= n-7 ? x-(n-7) : x, ly = y >= n-7 ? y-(n-7) : y;
-        const bx = Math.min(lx,6), by = Math.min(ly,6);
-        on = (bx===0||bx===6||by===0||by===6||(bx>=2&&bx<=4&&by>=2&&by<=4));
-      } else {
-        on = ((x*seed[y%7] + y*seed[x%7] + x*y) % 5) < 2;
-      }
-      if (on) rects += `<rect x="${(x*cell).toFixed(2)}" y="${(y*cell).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" fill="#3a2e24"/>`;
-    }
-  }
-  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
-}
-
 /* ------------------- Header + Nav ------------------- */
 function headerHtml(title, showBack) {
   const langBtns = `<div class="lang-toggle">
@@ -178,7 +155,7 @@ function renderWelcome() {
     ${treeLogo('logo-tree')}
     <h1 style="font-size:2rem;margin:14px 0 2px;color:#5d4530">MyCSB</h1>
     <p class="muted" style="max-width:280px">${t("welcome_sub")}</p>
-    <div class="qr-box">${qrSvg()}</div>
+    <div class="qr-box"><img src="assets/qr.svg" alt="QR code MyCSB" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona il QR code per accedere':'QR-Code scannen zum Öffnen'}</p>
     <div style="width:100%;max-width:300px;margin-top:14px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>
