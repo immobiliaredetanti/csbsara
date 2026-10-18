@@ -1,337 +1,342 @@
 /* =========================================================
-   MyCSB – Dati dimostrativi e traduzioni (IT / DE)
-   Tutti i dati sono FITTIZI. Nessun dato sanitario reale.
+   MyCSB v2 – Dati dimostrativi e traduzioni (IT / DE)
+   Concept dimostrativo. Nessun dato clinico o sanitario.
    ========================================================= */
 
-/* ----------------------- i18n ----------------------- */
+/* ----------------------- i18n (UI) ----------------------- */
 const I18N = {
   it: {
     lang_name: "Italiano",
+    subtitle: "Il Centro Sanitario Bregaglia sempre con te",
     welcome_title: "Benvenuto in MyCSB",
-    welcome_sub: "Tutti i servizi del Centro Sanitario Bregaglia in un unico luogo.",
+    welcome_msg: "Scopri, prenota e utilizza i servizi del Centro Sanitario Bregaglia in modo semplice e veloce.",
+    claim: "Un solo accesso. Tutti i servizi. Sempre con te.",
+    claim_sub: "Scopri, prenota e vivi i servizi del Centro Sanitario Bregaglia in modo semplice.",
     // nav
     nav_home: "Home", nav_services: "Servizi", nav_bookings: "Prenotazioni",
     nav_notifications: "Notifiche", nav_profile: "Profilo",
-    // generic
-    back: "Indietro", book: "Prenota", send: "Invia", cancel: "Annulla",
-    confirm: "Conferma", close: "Chiudi", next: "Avanti", save: "Salva",
-    view: "Visualizza", download: "Scarica", share: "Condividi", call: "Chiama",
-    write: "Scrivi", directions: "Indicazioni", all: "Tutti", open: "Apri",
-    request_sent: "Richiesta inviata con successo",
-    request_sent_sub: "Riceverai una conferma. Il prototipo non conferma appuntamenti reali.",
-    note_optional: "Note (facoltative)",
-    select: "Seleziona",
-    demo_data: "Dati dimostrativi",
-    // home
-    quick_book_meal: "Prenota pasto",
-    quick_book_visit: "Prenota visita",
-    quick_messages: "Messaggi",
-    quick_reminders: "Promemoria",
-    home_services: "I nostri servizi",
-    next_appointment: "Prossimo appuntamento",
-    // services list
-    s_medical: "Studio medico",
-    s_physio: "Fisioterapia",
-    s_spitex: "Spitex",
-    s_home: "Casa anziani",
-    s_cafe: "Caffetteria",
-    s_meals: "Pasti a domicilio",
-    s_laundry: "Lavanderia",
-    s_specialists: "Specialisti e dentista",
-    s_events: "Eventi e novità",
-    s_personal: "Area personale",
-    s_contacts: "Contatti e numeri utili",
-    s_reminders: "Promemoria sanitari",
-    s_messages: "Messaggistica",
-    // status
-    st_wait: "In attesa", st_confirmed: "Confermata", st_alt: "Modifica proposta",
-    st_received: "Ricevuto", st_processing: "In lavorazione", st_ready: "Pronto per il ritiro",
-    st_cancelled: "Annullato",
-    // profile
-    personal_data: "Dati personali",
-    pref_language: "Lingua preferita",
-    appointments: "Appuntamenti",
-    documents: "Documenti",
-    invoices: "Fatture",
-    notifications: "Notifiche",
-    authorized_family: "Familiari autorizzati",
-    privacy_settings: "Impostazioni privacy",
-    logout: "Esci",
-    login_personal: "Accedi all'area personale",
-    // final
-    final_slogan: "Un solo accesso. Tutti i servizi. Sempre con te.",
+    // generico
+    search_ph: "Cosa stai cercando?",
+    featured: "In evidenza",
+    main_services: "Servizi principali",
+    book: "Prenota", order: "Ordina", takeaway: "Ordina Takeaway",
+    subscribe: "Iscriviti", request: "Richiedi", pay: "Paga",
+    contact: "Contatta", send: "Invia", cancel: "Annulla", confirm: "Conferma",
+    close: "Chiudi", next: "Avanti", save: "Salva", view: "Visualizza",
+    add_cart: "Aggiungi al carrello", modify: "Modifica", suspend: "Sospendi",
+    info: "Informazioni", call: "Chiama", email: "E-mail", directions: "Indicazioni",
+    login: "Accedi", logout: "Esci", add_calendar: "Aggiungi al calendario",
+    remind: "Ricordamelo", remind_later: "Ricordamelo più tardi", discover: "Scopri",
+    participate: "Partecipo", note_opt: "Note (facoltative)", quantity: "Quantità",
+    pickup_time: "Orario di ritiro", day: "Giorno", select: "Seleziona",
+    request_sent: "Richiesta inviata", request_sent_sub: "La richiesta verrà verificata e confermata dal servizio.",
+    // stati
+    st_available: "disponibile", st_full: "completo", st_pending: "In attesa di conferma",
+    st_confirmed: "Confermato", st_received: "Ricevuto", st_processing: "In lavorazione",
+    st_ready: "Pronto", st_cancelled: "Annullato", st_upcoming: "Prossime", st_past: "Passate",
+    // conferme
+    order_confirmed: "Ordine confermato", order_ready_msg: "Il tuo ordine è pronto per il ritiro.",
+    lunch_booked: "Il tuo pranzo è stato prenotato.", pay_success: "Pagamento effettuato con successo",
+    places_left: "posti disponibili",
+    // carrello
+    cart: "Carrello", cart_empty: "Il carrello è vuoto", total: "Totale",
+    checkout: "Vai al pagamento", pay_method: "Metodo di pagamento",
+    receipts: "Le mie ricevute",
+    // sezioni
+    s_eat: "Mangiare & ordinare", s_health: "Salute & prevenzione",
+    s_physio: "Fisioterapia & movimento", s_spitex: "Spitex",
+    s_laundry: "Lavanderia", s_carehome: "Casa anziani",
+    s_events: "Eventi & novità", s_specialists: "Specialisti", s_contacts: "Contatti",
+    s_cafeteria: "Caffetteria", s_stafflunch: "Pranzo collaboratori",
+    s_mealshome: "Pasti a domicilio", s_health_doctor: "Studio medico",
+    s_reminders: "I miei promemoria",
+    // area personale
+    my_bookings: "Le mie prenotazioni", my_orders: "I miei ordini",
+    preferences: "Preferenze", privacy: "Privacy", language: "Lingua",
+    good_morning: "Buongiorno", today_for_you: "Oggi per te",
+    next_appt: "Prossimo appuntamento",
+    concept_badge: "Concept dimostrativo",
+    concept_text: "Le funzionalità illustrate rappresentano una proposta progettuale. Servizi, modalità operative, integrazioni, prenotazioni e pagamenti saranno definiti e validati con i rispettivi settori in caso di sviluppo del progetto.",
+    login_needed: "Per questa funzione è necessario accedere.",
+    weekly_menu: "Menù settimanale", week_plan: "Piano settimanale", modify_week: "Modifica settimana",
+    gym_calendar: "Calendario palestra", courses: "Corsi",
+    order_tracking: "Stato ordine", my_messages: "Messaggi",
   },
   de: {
     lang_name: "Deutsch",
+    subtitle: "Das Gesundheitszentrum Bergell immer bei dir",
     welcome_title: "Willkommen bei MyCSB",
-    welcome_sub: "Alle Dienste des Gesundheitszentrums Bergell an einem Ort.",
-    nav_home: "Home", nav_services: "Dienste", nav_bookings: "Termine",
+    welcome_msg: "Entdecke, buche und nutze die Dienste des Gesundheitszentrums Bergell – einfach und schnell.",
+    claim: "Ein Zugang. Alle Dienste. Immer bei dir.",
+    claim_sub: "Entdecke, buche und erlebe die Dienste des Gesundheitszentrums Bergell – ganz einfach.",
+    nav_home: "Home", nav_services: "Dienste", nav_bookings: "Buchungen",
     nav_notifications: "Mitteilungen", nav_profile: "Profil",
-    back: "Zurück", book: "Buchen", send: "Senden", cancel: "Abbrechen",
-    confirm: "Bestätigen", close: "Schliessen", next: "Weiter", save: "Speichern",
-    view: "Ansehen", download: "Herunterladen", share: "Teilen", call: "Anrufen",
-    write: "Schreiben", directions: "Route", all: "Alle", open: "Öffnen",
-    request_sent: "Anfrage erfolgreich gesendet",
-    request_sent_sub: "Sie erhalten eine Bestätigung. Der Prototyp bestätigt keine echten Termine.",
-    note_optional: "Anmerkungen (optional)",
-    select: "Auswählen",
-    demo_data: "Demodaten",
-    quick_book_meal: "Mahlzeit buchen",
-    quick_book_visit: "Termin buchen",
-    quick_messages: "Nachrichten",
-    quick_reminders: "Erinnerungen",
-    home_services: "Unsere Dienste",
-    next_appointment: "Nächster Termin",
-    s_medical: "Arztpraxis",
-    s_physio: "Physiotherapie",
-    s_spitex: "Spitex",
-    s_home: "Altersheim",
-    s_cafe: "Cafeteria",
-    s_meals: "Mahlzeiten nach Hause",
-    s_laundry: "Wäscherei",
-    s_specialists: "Fachärzte und Zahnarzt",
-    s_events: "Veranstaltungen",
-    s_personal: "Persönlicher Bereich",
-    s_contacts: "Kontakte und Nummern",
-    s_reminders: "Gesundheits-Erinnerungen",
-    s_messages: "Nachrichten",
-    st_wait: "Ausstehend", st_confirmed: "Bestätigt", st_alt: "Änderung vorgeschlagen",
-    st_received: "Erhalten", st_processing: "In Bearbeitung", st_ready: "Abholbereit",
-    st_cancelled: "Storniert",
-    personal_data: "Persönliche Daten",
-    pref_language: "Bevorzugte Sprache",
-    appointments: "Termine",
-    documents: "Dokumente",
-    invoices: "Rechnungen",
-    notifications: "Mitteilungen",
-    authorized_family: "Autorisierte Angehörige",
-    privacy_settings: "Datenschutz",
-    logout: "Abmelden",
-    login_personal: "Zum persönlichen Bereich",
-    final_slogan: "Ein Zugang. Alle Dienste. Immer bei Ihnen.",
+    search_ph: "Wonach suchst du?",
+    featured: "Aktuell",
+    main_services: "Hauptdienste",
+    book: "Buchen", order: "Bestellen", takeaway: "Take-away bestellen",
+    subscribe: "Anmelden", request: "Anfragen", pay: "Bezahlen",
+    contact: "Kontakt", send: "Senden", cancel: "Abbrechen", confirm: "Bestätigen",
+    close: "Schliessen", next: "Weiter", save: "Speichern", view: "Ansehen",
+    add_cart: "In den Warenkorb", modify: "Ändern", suspend: "Pausieren",
+    info: "Informationen", call: "Anrufen", email: "E-Mail", directions: "Route",
+    login: "Anmelden", logout: "Abmelden", add_calendar: "Zum Kalender",
+    remind: "Erinnern", remind_later: "Später erinnern", discover: "Entdecken",
+    participate: "Ich nehme teil", note_opt: "Anmerkungen (optional)", quantity: "Menge",
+    pickup_time: "Abholzeit", day: "Tag", select: "Auswählen",
+    request_sent: "Anfrage gesendet", request_sent_sub: "Die Anfrage wird vom Dienst geprüft und bestätigt.",
+    st_available: "frei", st_full: "ausgebucht", st_pending: "Wartet auf Bestätigung",
+    st_confirmed: "Bestätigt", st_received: "Erhalten", st_processing: "In Bearbeitung",
+    st_ready: "Bereit", st_cancelled: "Storniert", st_upcoming: "Nächste", st_past: "Vergangene",
+    order_confirmed: "Bestellung bestätigt", order_ready_msg: "Deine Bestellung ist abholbereit.",
+    lunch_booked: "Dein Mittagessen wurde gebucht.", pay_success: "Zahlung erfolgreich",
+    places_left: "freie Plätze",
+    cart: "Warenkorb", cart_empty: "Der Warenkorb ist leer", total: "Total",
+    checkout: "Zur Zahlung", pay_method: "Zahlungsmethode",
+    receipts: "Meine Belege",
+    s_eat: "Essen & bestellen", s_health: "Gesundheit & Vorsorge",
+    s_physio: "Physiotherapie & Bewegung", s_spitex: "Spitex",
+    s_laundry: "Wäscherei", s_carehome: "Altersheim",
+    s_events: "Veranstaltungen", s_specialists: "Fachärzte", s_contacts: "Kontakte",
+    s_cafeteria: "Cafeteria", s_stafflunch: "Mitarbeiter-Mittagessen",
+    s_mealshome: "Mahlzeiten nach Hause", s_health_doctor: "Arztpraxis",
+    s_reminders: "Meine Erinnerungen",
+    my_bookings: "Meine Buchungen", my_orders: "Meine Bestellungen",
+    preferences: "Einstellungen", privacy: "Datenschutz", language: "Sprache",
+    good_morning: "Guten Morgen", today_for_you: "Heute für dich",
+    next_appt: "Nächster Termin",
+    concept_badge: "Demonstrations-Konzept",
+    concept_text: "Die gezeigten Funktionen sind ein Projektvorschlag. Dienste, Abläufe, Integrationen, Buchungen und Zahlungen werden bei einer Umsetzung mit den jeweiligen Bereichen definiert und validiert.",
+    login_needed: "Für diese Funktion ist eine Anmeldung nötig.",
+    weekly_menu: "Wochenmenü", week_plan: "Wochenplan", modify_week: "Woche ändern",
+    gym_calendar: "Fitnessraum-Kalender", courses: "Kurse",
+    order_tracking: "Bestellstatus", my_messages: "Nachrichten",
   }
 };
 
-/* --------------------- Demo data --------------------- */
+/* --------------------- Dati demo --------------------- */
 const DATA = {
-  user: {
-    name: "Maria Rossi",
-    initials: "MR",
-    birth: "15.03.1958",
-    userId: "CSB-000125",
-    email: "maria.rossi@example.ch",
-    phone: "+41 79 123 45 67",
-    address: "Via Maistra 12, 7605 Stampa",
-    language: "it",
-    family: [
-      { name: "Giuseppe Rossi", rel_it: "Coniuge (assistito)", rel_de: "Ehepartner (betreut)" },
-      { name: "Anna Rossi", rel_it: "Figlia – contatto autorizzato", rel_de: "Tochter – autorisiert" }
-    ]
-  },
+  user: { name: "Anna Rossi", initials: "AR", staff: true, userId: "CSB-000208" },
 
-  // Servizi con icona, priorità e sottotitolo
+  // Card servizi della home (9)
   services: [
-    { id: "medical",     icon: "🩺", key: "s_medical",     sub_it: "Visite, ricette, certificati", sub_de: "Termine, Rezepte, Atteste" },
-    { id: "physio",      icon: "🤸", key: "s_physio",      sub_it: "Trattamenti e palestra", sub_de: "Behandlungen und Fitnessraum" },
-    { id: "spitex",      icon: "🏠", key: "s_spitex",      sub_it: "Assistenza domiciliare", sub_de: "Hauspflege" },
-    { id: "carehome",    icon: "🌳", key: "s_home",        sub_it: "Casa anziani e area famiglia", sub_de: "Altersheim und Familienbereich" },
-    { id: "cafe",        icon: "☕", key: "s_cafe",        sub_it: "Menù e prenotazioni", sub_de: "Menü und Reservierungen" },
-    { id: "meals",       icon: "🍲", key: "s_meals",       sub_it: "Pasti consegnati a casa", sub_de: "Essen nach Hause geliefert" },
-    { id: "laundry",     icon: "🧺", key: "s_laundry",     sub_it: "Servizio per clienti esterni", sub_de: "Service für externe Kunden" },
-    { id: "specialists", icon: "🦷", key: "s_specialists", sub_it: "Dentista e specialisti partner", sub_de: "Zahnarzt und Partner" },
-    { id: "events",      icon: "📅", key: "s_events",      sub_it: "Eventi e novità del CSB", sub_de: "Veranstaltungen des CSB" },
-    { id: "reminders",   icon: "🔔", key: "s_reminders",   sub_it: "Controlli e scadenze", sub_de: "Kontrollen und Fristen" },
-    { id: "messages",    icon: "💬", key: "s_messages",    sub_it: "Messaggistica sicura", sub_de: "Sichere Nachrichten" },
-    { id: "contacts",    icon: "📞", key: "s_contacts",    sub_it: "Numeri utili e mappa", sub_de: "Nummern und Karte" },
+    { id:"eat",         icon:"🍽️", key:"s_eat",         sub_it:"Caffetteria, pranzo e pasti a domicilio", sub_de:"Cafeteria, Mittagessen, Lieferung" },
+    { id:"health",      icon:"🩺", key:"s_health",      sub_it:"Studio medico e prevenzione", sub_de:"Arztpraxis und Vorsorge" },
+    { id:"physio",      icon:"🤸", key:"s_physio",      sub_it:"Trattamenti, palestra e corsi", sub_de:"Therapie, Fitnessraum, Kurse" },
+    { id:"spitex",      icon:"🏠", key:"s_spitex",      sub_it:"Assistenza a domicilio", sub_de:"Hauspflege" },
+    { id:"laundry",     icon:"🧺", key:"s_laundry",     sub_it:"Anche per clienti esterni", sub_de:"Auch für externe Kunden" },
+    { id:"carehome",    icon:"🌳", key:"s_carehome",    sub_it:"Vita, attività ed eventi", sub_de:"Leben, Aktivitäten, Events" },
+    { id:"events",      icon:"📅", key:"s_events",      sub_it:"La bacheca del CSB", sub_de:"Die Pinnwand des CSB" },
+    { id:"specialists", icon:"🩻", key:"s_specialists", sub_it:"Specialisti e dentista partner", sub_de:"Fachärzte und Zahnarzt" },
+    { id:"contacts",    icon:"📞", key:"s_contacts",    sub_it:"Tutti i numeri utili", sub_de:"Alle nützlichen Nummern" },
   ],
 
-  appointments: [
-    { id: 1, icon: "🤸", title_it: "Fisioterapia individuale", title_de: "Physiotherapie", date: "18.08.2026", time: "10:30", who: "Giulia", status: "confirmed", cat: "physio" },
-    { id: 2, icon: "🦷", title_it: "Visita dermatologica", title_de: "Hautarzt-Termin", date: "02.09.2026", time: "14:00", who: "Dr. Keller", status: "confirmed", cat: "specialists" },
-    { id: 3, icon: "🧪", title_it: "Esami di laboratorio", title_de: "Laboruntersuchung", date: "10.09.2026", time: "08:00", who: "Studio medico", status: "confirmed", cat: "medical" },
-    { id: 4, icon: "🩺", title_it: "Visita di controllo", title_de: "Kontrolluntersuchung", date: "20.09.2026", time: "09:15", who: "Dr. Bianchi", status: "wait", cat: "medical" },
-  ],
-  pastAppointments: [
-    { id: 10, icon: "🤸", title_it: "Fisioterapia individuale", title_de: "Physiotherapie", date: "03.07.2026", time: "11:00", who: "Giulia" },
-    { id: 11, icon: "🩺", title_it: "Visita medica generale", title_de: "Allgemeine Untersuchung", date: "15.06.2026", time: "10:00", who: "Dr. Bianchi" },
+  // In evidenza (home)
+  featured: [
+    { icon:"🍲", tag_it:"Caffetteria", tag_de:"Cafeteria", title_it:"Menù di oggi", title_de:"Tagesmenü", go:["service","cafeteria"] },
+    { icon:"🧴", tag_it:"Specialisti", tag_de:"Fachärzte", title_it:"Il dermatologo sarà presente il 15 ottobre", title_de:"Der Hautarzt ist am 15. Oktober da", go:["service","specialists"] },
+    { icon:"🤸", tag_it:"Movimento", tag_de:"Bewegung", title_it:"Nuovo corso di ginnastica dolce", title_de:"Neuer Kurs: sanfte Gymnastik", go:["service","physio"] },
+    { icon:"🍂", tag_it:"Casa anziani", tag_de:"Altersheim", title_it:"Festa d'autunno alla Casa anziani", title_de:"Herbstfest im Altersheim", go:["service","carehome"] },
+    { icon:"🧺", tag_it:"Novità", tag_de:"Neu", title_it:"Scopri il servizio lavanderia", title_de:"Entdecke die Wäscherei", go:["service","laundry"] },
   ],
 
-  documents: {
-    health: [
-      { id: "d1", icon: "🧪", title_it: "Esami di laboratorio", title_de: "Laboruntersuchung", date: "10.07.2026" },
-      { id: "d2", icon: "🤸", title_it: "Referto fisioterapia", title_de: "Physiotherapie-Bericht", date: "03.07.2026" },
-      { id: "d3", icon: "📄", title_it: "Referto medico", title_de: "Arztbericht", date: "15.06.2026" },
-      { id: "d4", icon: "💊", title_it: "Prescrizione", title_de: "Rezept", date: "12.06.2026" },
-    ],
-    admin: [
-      { id: "a1", icon: "🧾", title_it: "Fattura caffetteria – giugno 2026", title_de: "Rechnung Cafeteria – Juni 2026", date: "30.06.2026", amount: "CHF 54.00" },
-      { id: "a2", icon: "🧾", title_it: "Fattura fisioterapia – maggio 2026", title_de: "Rechnung Physio – Mai 2026", date: "31.05.2026", amount: "CHF 180.00" },
-      { id: "a3", icon: "🧾", title_it: "Ricevuta pasti a domicilio", title_de: "Quittung Mahlzeiten", date: "20.06.2026", amount: "CHF 96.00" },
-    ]
-  },
-
-  notifications: [
-    { id: "n1", icon: "📄", cat: "referti", title_it: "Nuovo referto disponibile", title_de: "Neuer Bericht verfügbar", sub_it: "Esami di laboratorio del 10.07.2026", sub_de: "Laborbericht vom 10.07.2026", time_it: "2 ore fa", time_de: "vor 2 Std.", unread: true },
-    { id: "n2", icon: "🍲", cat: "pasti", title_it: "Il pasto di domani è confermato", title_de: "Mahlzeit für morgen bestätigt", sub_it: "Consegna 11:30–12:30", sub_de: "Lieferung 11:30–12:30", time_it: "5 ore fa", time_de: "vor 5 Std.", unread: true },
-    { id: "n3", icon: "🧺", cat: "lavanderia", title_it: "Biancheria pronta per il ritiro", title_de: "Wäsche abholbereit", sub_it: "Ordine L-2026-015 · dalle 14:00", sub_de: "Auftrag L-2026-015 · ab 14:00", time_it: "Ieri", time_de: "Gestern", unread: true },
-    { id: "n4", icon: "🔔", cat: "referti", title_it: "È trascorso un anno dall'ultima visita ginecologica", title_de: "Ein Jahr seit der letzten gynäkologischen Kontrolle", sub_it: "Consigliato programmare un controllo", sub_de: "Kontrolle empfohlen", time_it: "Ieri", time_de: "Gestern", unread: false },
-    { id: "n5", icon: "🏠", cat: "spitex", title_it: "Richiesta Spitex ricevuta", title_de: "Spitex-Anfrage erhalten", sub_it: "Il coordinatore verificherà la disponibilità", sub_de: "Der Koordinator prüft die Verfügbarkeit", time_it: "2 giorni fa", time_de: "vor 2 Tagen", unread: false },
-    { id: "n6", icon: "🌳", cat: "casa anziani", title_it: "Nuova comunicazione dal reparto", title_de: "Neue Mitteilung der Abteilung", sub_it: "Diario giornaliero aggiornato", sub_de: "Tagebuch aktualisiert", time_it: "2 giorni fa", time_de: "vor 2 Tagen", unread: false },
-    { id: "n7", icon: "📅", cat: "eventi", title_it: "Nuovo evento CSB disponibile", title_de: "Neue CSB-Veranstaltung", sub_it: "Giornata della donazione del sangue", sub_de: "Blutspendetag", time_it: "3 giorni fa", time_de: "vor 3 Tagen", unread: false },
-  ],
-
-  doctors: [
-    { name: "Dr. med. Bianchi", role_it: "Medico di base", role_de: "Hausarzt" },
-    { name: "Dr. med. Moser", role_it: "Medico di base", role_de: "Hausärztin" },
-    { name: "Dr. med. Ferrari", role_it: "Medicina interna", role_de: "Innere Medizin" },
-  ],
-  visitTypes: [
-    { it: "Visita generale", de: "Allgemeine Untersuchung" },
-    { it: "Visita di controllo", de: "Kontrolle" },
-    { it: "Esami del sangue", de: "Blutuntersuchung" },
-    { it: "Vaccinazione", de: "Impfung" },
-  ],
-  timeSlots: ["08:00", "08:30", "09:00", "10:30", "11:00", "14:00", "15:30", "16:00"],
-
-  physioTreatments: [
-    { it: "Fisioterapia individuale", de: "Einzel-Physiotherapie" },
-    { it: "Ginnastica riabilitativa", de: "Rehabilitationsgymnastik" },
-    { it: "Terapia manuale", de: "Manuelle Therapie" },
-    { it: "Linfodrenaggio", de: "Lymphdrainage" },
-    { it: "Utilizzo palestra", de: "Fitnessraum-Nutzung" },
-  ],
-  physioExercises: [
-    { it: "Mobilizzazione spalla – 2 serie da 10", de: "Schultermobilisation – 2×10" },
-    { it: "Rinforzo gambe – 3 serie da 12", de: "Beinkräftigung – 3×12" },
-    { it: "Equilibrio su un piede – 3 × 30 sec.", de: "Gleichgewicht – 3 × 30 Sek." },
-  ],
-
-  spitexServices: [
-    { it: "Cure a domicilio", de: "Pflege zu Hause" },
-    { it: "Igiene personale", de: "Körperpflege" },
-    { it: "Cura delle ferite", de: "Wundpflege" },
-    { it: "Aiuto domestico e spesa", de: "Haushalt und Einkauf" },
-    { it: "Consegna pasti", de: "Mahlzeitendienst" },
-    { it: "Accompagnamento sociale", de: "Soziale Begleitung" },
-  ],
-  spitexPlanned: [
-    { icon:"🧼", title_it:"Igiene personale", title_de:"Körperpflege", when_it:"Lun 21.07 · 08:00–10:00", when_de:"Mo 21.07 · 08:00–10:00", who:"Sara", status:"confirmed" },
-    { icon:"💊", title_it:"Controllo farmaci", title_de:"Medikamentenkontrolle", when_it:"Mer 23.07 · 09:00", when_de:"Mi 23.07 · 09:00", who:"Sara", status:"confirmed" },
-    { icon:"🩹", title_it:"Cura della ferita", title_de:"Wundpflege", when_it:"Ven 25.07 · 15:00", when_de:"Fr 25.07 · 15:00", who:"Marco", status:"wait" },
-  ],
-
+  // Caffetteria
   cafeMenuDay: {
-    date_it: "Menù del giorno", date_de: "Tagesmenü",
     items: [
-      { k_it:"Primo", k_de:"Vorspeise", v_it:"Risotto alle verdure", v_de:"Gemüse-Risotto" },
-      { k_it:"Secondo", k_de:"Hauptgang", v_it:"Filetto di pesce con patate", v_de:"Fischfilet mit Kartoffeln" },
-      { k_it:"Dessert", k_de:"Dessert", v_it:"Yogurt alla frutta", v_de:"Frucht-Joghurt" },
+      { it:"Risotto ai funghi", de:"Pilz-Risotto" },
+      { it:"Brasato con polenta", de:"Schmorbraten mit Polenta" },
+      { it:"Verdure di stagione", de:"Saisongemüse" },
+      { it:"Dessert della casa", de:"Hausdessert" },
     ],
-    price: "CHF 18.00"
+    price: 18.00
   },
   cafeWeek: [
     { d_it:"Lunedì", d_de:"Montag", m_it:"Minestrone · Arrosto di vitello · Macedonia", m_de:"Minestrone · Kalbsbraten · Obstsalat" },
-    { d_it:"Martedì", d_de:"Dienstag", m_it:"Risotto alle verdure · Filetto di pesce · Yogurt", m_de:"Gemüse-Risotto · Fischfilet · Joghurt" },
+    { d_it:"Martedì", d_de:"Dienstag", m_it:"Risotto ai funghi · Brasato con polenta · Dessert", m_de:"Pilz-Risotto · Schmorbraten · Dessert" },
     { d_it:"Mercoledì", d_de:"Mittwoch", m_it:"Pasta al pomodoro · Pollo al forno · Torta", m_de:"Tomatenpasta · Ofenhähnchen · Kuchen" },
-    { d_it:"Giovedì", d_de:"Donnerstag", m_it:"Zuppa d'orzo · Polenta e brasato · Frutta", m_de:"Gerstensuppe · Polenta mit Schmorbraten · Obst" },
-    { d_it:"Venerdì", d_de:"Freitag", m_it:"Crema di zucca · Sformato di verdure · Gelato", m_de:"Kürbiscremesuppe · Gemüseauflauf · Glace" },
+    { d_it:"Giovedì", d_de:"Donnerstag", m_it:"Zuppa d'orzo · Polenta e formaggio · Frutta", m_de:"Gerstensuppe · Polenta mit Käse · Obst" },
+    { d_it:"Venerdì", d_de:"Freitag", m_it:"Crema di zucca · Filetto di pesce · Gelato", m_de:"Kürbissuppe · Fischfilet · Glace" },
+  ],
+  cafeTimes: "11:30 – 13:30",
+
+  // Pranzo collaboratori
+  staffLunch: [
+    { id:"A", name_it:"Menù A – Brasato con polenta", name_de:"Menü A – Schmorbraten mit Polenta" },
+    { id:"B", name_it:"Menù B – Filetto di pesce e patate", name_de:"Menü B – Fischfilet mit Kartoffeln" },
+    { id:"V", name_it:"Vegetariano – Sformato di verdure", name_de:"Vegetarisch – Gemüseauflauf" },
   ],
 
-  mealsHistory: [
-    { date:"24.07.2026", menu_it:"Menù completo", menu_de:"Vollmenü", status:"confirmed" },
-    { date:"20.06.2026", menu_it:"Menù leggero", menu_de:"Leichtes Menü", status:"confirmed" },
-    { date:"18.06.2026", menu_it:"Menù completo", menu_de:"Vollmenü", status:"confirmed" },
+  // Pasti a domicilio
+  mealsHomePrice: 16.50,
+  mealsZones_it: "Promontogno, Bondo, Soglio, Vicosoprano, Stampa, Maloja",
+  mealsZones_de: "Promontogno, Bondo, Soglio, Vicosoprano, Stampa, Maloja",
+
+  // Studio medico
+  doctors: [
+    { name:"Dr. med. Hausarzt", role_it:"Medicina generale", role_de:"Allgemeinmedizin" },
+    { name:"Studio medico Promontogno", role_it:"Ambulatorio", role_de:"Ambulatorium" },
+    { name:"Studio medico Maloja", role_it:"Ambulatorio", role_de:"Ambulatorium" },
+  ],
+  visitTypes: [
+    { it:"Visita generale", de:"Allgemeine Untersuchung" },
+    { it:"Controllo", de:"Kontrolle" },
+    { it:"Vaccinazione", de:"Impfung" },
+    { it:"Certificato", de:"Attest" },
+  ],
+  timeSlots: ["08:00","08:30","09:00","10:30","11:00","14:00","15:30","16:00"],
+
+  // Specialisti
+  specialists: [
+    { icon:"🧴", field_it:"Dermatologia", field_de:"Dermatologie", next:"15.10.2026", partner:false },
+    { icon:"❤️", field_it:"Cardiologia", field_de:"Kardiologie", next:"22.10.2026", partner:false },
+    { icon:"🫁", field_it:"Pneumologia", field_de:"Pneumologie", next:"05.11.2026", partner:false },
+    { icon:"🌸", field_it:"Ginecologia", field_de:"Gynäkologie", next:"29.10.2026", partner:false },
+    { icon:"🦷", field_it:"Dentista", field_de:"Zahnarzt", next:"su appuntamento", next_de:"nach Vereinbarung", partner:true },
+    { icon:"👁️", field_it:"Oftalmologia", field_de:"Augenheilkunde", next:"12.11.2026", partner:false },
   ],
 
+  // Promemoria salute (volontari)
+  reminders: [
+    { id:"r1", icon:"🌸", title_it:"Controllo ginecologico", title_de:"Gynäkologische Kontrolle", every_it:"ogni 12 mesi", every_de:"alle 12 Monate", on:true },
+    { id:"r2", icon:"🧴", title_it:"Controllo dermatologico", title_de:"Dermatologische Kontrolle", every_it:"ogni 12 mesi", every_de:"alle 12 Monate", on:true },
+    { id:"r3", icon:"🦷", title_it:"Igiene dentale", title_de:"Dentalhygiene", every_it:"ogni 6 mesi", every_de:"alle 6 Monate", on:false },
+    { id:"r4", icon:"🩸", title_it:"Donazione sangue", title_de:"Blutspende", every_it:"avvisami alle nuove giornate", every_de:"bei neuen Terminen benachrichtigen", on:true },
+  ],
+
+  // Fisioterapia – palestra
+  gymSlots: [
+    { day_it:"Martedì", day_de:"Dienstag", time:"10:00", free:true },
+    { day_it:"Martedì", day_de:"Dienstag", time:"11:00", free:false },
+    { day_it:"Martedì", day_de:"Dienstag", time:"14:00", free:true },
+    { day_it:"Giovedì", day_de:"Donnerstag", time:"09:30", free:true },
+    { day_it:"Giovedì", day_de:"Donnerstag", time:"16:00", free:true },
+  ],
+  physioTreatments: [
+    { it:"Fisioterapia individuale", de:"Einzel-Physiotherapie" },
+    { it:"Terapia manuale", de:"Manuelle Therapie" },
+    { it:"Riabilitazione", de:"Rehabilitation" },
+    { it:"Linfodrenaggio", de:"Lymphdrainage" },
+  ],
+  courses: [
+    { icon:"🧘", title_it:"Ginnastica dolce", title_de:"Sanfte Gymnastik", when_it:"Martedì ore 09:30", when_de:"Dienstag 09:30", places:8, price:15.00 },
+    { icon:"💪", title_it:"Movimento in età avanzata", title_de:"Bewegung im Alter", when_it:"Giovedì ore 14:00", when_de:"Donnerstag 14:00", places:5, price:15.00 },
+    { icon:"🤸", title_it:"Equilibrio e postura", title_de:"Gleichgewicht & Haltung", when_it:"Venerdì ore 10:00", when_de:"Freitag 10:00", places:6, price:18.00 },
+  ],
+
+  // Spitex
+  spitexServices: [
+    { it:"Assistenza domiciliare", de:"Hauspflege" },
+    { it:"Cure a domicilio", de:"Pflege zu Hause" },
+    { it:"Aiuto domestico e spesa", de:"Haushalt und Einkauf" },
+    { it:"Accompagnamento", de:"Begleitung" },
+  ],
+
+  // Lavanderia
   laundryServices: [
-    { it:"Lavaggio e stiratura biancheria", de:"Waschen und Bügeln Wäsche", price:"CHF 8.–/kg" },
+    { it:"Lavaggio e stiratura biancheria", de:"Waschen und Bügeln", price:"CHF 8.–/kg" },
     { it:"Capi delicati", de:"Feinwäsche", price:"CHF 12.–/kg" },
-    { it:"Lavaggio coperte e piumini", de:"Decken und Duvets", price:"CHF 25.–/Stk" },
+    { it:"Coperte e piumini", de:"Decken und Duvets", price:"CHF 25.–/Stk" },
     { it:"Stiratura camicie", de:"Hemden bügeln", price:"CHF 4.–/Stk" },
   ],
-  laundryOrder: {
-    id: "L-2026-015",
-    steps: ["received", "processing", "ready"],
-    current: 2, // 0-based -> "ready"
-    msg_it: "La sua biancheria è pronta. Può ritirarla a partire dalle ore 14:00.",
-    msg_de: "Ihre Wäsche ist bereit. Abholung ab 14:00 Uhr möglich."
-  },
-
-  specialists: [
-    { icon:"🦷", name_it:"Dentista", name_de:"Zahnarzt", who:"Dr. Keller", days_it:"Lun, Mer, Ven", days_de:"Mo, Mi, Fr", partner:false },
-    { icon:"🧴", name_it:"Dermatologo", name_de:"Hautarzt", who:"Dr.ssa Weber", days_it:"Martedì", days_de:"Dienstag", partner:true },
-    { icon:"🫁", name_it:"Pneumologo", name_de:"Pneumologe", who:"Dr. Rossi", days_it:"1° giovedì del mese", days_de:"1. Do im Monat", partner:true },
-    { icon:"❤️", name_it:"Cardiologo", name_de:"Kardiologe", who:"Dr. Meier", days_it:"Mercoledì", days_de:"Mittwoch", partner:true },
-    { icon:"🌸", name_it:"Ginecologo", name_de:"Gynäkologe", who:"Dr.ssa Fontana", days_it:"Giovedì", days_de:"Donnerstag", partner:false },
+  laundryOrders: [
+    { id:"L-1254", date:"14.10.2026", status:2, amount:32.50 }, // 0 ric, 1 lav, 2 pronto
+    { id:"L-1248", date:"02.10.2026", status:2, amount:24.00 },
+  ],
+  laundryChat: [
+    { from:"me", it:"Buongiorno, posso consegnare la biancheria martedì?", de:"Guten Tag, kann ich die Wäsche am Dienstag bringen?", time:"08:40" },
+    { from:"them", it:"Buongiorno, certamente. Può consegnarla dalle ore 08:00.", de:"Guten Tag, gerne. Sie können sie ab 08:00 Uhr bringen.", time:"08:52" },
   ],
 
-  reminders: [
-    { id:"r1", icon:"🌸", text_it:"È trascorso un anno dalla sua ultima visita ginecologica.", text_de:"Ein Jahr seit der letzten gynäkologischen Kontrolle.", on:true, action:true },
-    { id:"r2", icon:"🧴", text_it:"È consigliato programmare un controllo dermatologico.", text_de:"Eine dermatologische Kontrolle wird empfohlen.", on:true, action:true },
-    { id:"r3", icon:"🤸", text_it:"Domani alle ore 10:30 ha una seduta di fisioterapia.", text_de:"Morgen um 10:30 Uhr Physiotherapie.", on:true, action:false },
-    { id:"r4", icon:"📄", text_it:"È disponibile un nuovo referto.", text_de:"Ein neuer Bericht ist verfügbar.", on:true, action:false },
-    { id:"r5", icon:"💊", text_it:"La sua prescrizione è prossima alla scadenza.", text_de:"Ihr Rezept läuft bald ab.", on:false, action:true },
-    { id:"r6", icon:"❤️", text_it:"Il controllo cardiologico è previsto tra sette giorni.", text_de:"Kardiologische Kontrolle in sieben Tagen.", on:true, action:true },
+  // Casa anziani
+  careActivities: [
+    { d_it:"Lunedì", d_de:"Montag", a_it:"Ginnastica", a_de:"Gymnastik", icon:"🤸" },
+    { d_it:"Martedì", d_de:"Dienstag", a_it:"Attività creativa", a_de:"Kreatives", icon:"🎨" },
+    { d_it:"Mercoledì", d_de:"Mittwoch", a_it:"Musica", a_de:"Musik", icon:"🎶" },
+    { d_it:"Giovedì", d_de:"Donnerstag", a_it:"Passeggiata", a_de:"Spaziergang", icon:"🚶" },
+    { d_it:"Venerdì", d_de:"Freitag", a_it:"Tombola", a_de:"Tombola", icon:"🎱" },
+  ],
+  careEvents: [
+    { icon:"🍂", title_it:"Festa d'autunno", title_de:"Herbstfest", date:"17.10.2026", time:"14:30", place:"Centro Sanitario Bregaglia", note_it:"I familiari sono cordialmente invitati.", note_de:"Angehörige sind herzlich eingeladen." },
+    { icon:"🎶", title_it:"Pomeriggio musicale", title_de:"Musiknachmittag", date:"31.10.2026", time:"15:30", place:"Sala comune", note_it:"Aperto a familiari e ospiti.", note_de:"Offen für Angehörige und Gäste." },
   ],
 
+  // Eventi & novità (bacheca)
+  eventCats: [
+    {id:"all", it:"Tutti", de:"Alle"},
+    {id:"eventi", it:"Eventi", de:"Events"},
+    {id:"salute", it:"Salute", de:"Gesundheit"},
+    {id:"carehome", it:"Casa anziani", de:"Altersheim"},
+    {id:"physio", it:"Fisioterapia", de:"Physio"},
+    {id:"cafe", it:"Caffetteria", de:"Cafeteria"},
+    {id:"novita", it:"Novità", de:"Neu"},
+    {id:"corsi", it:"Corsi", de:"Kurse"},
+    {id:"territorio", it:"Territorio", de:"Region"},
+  ],
   events: [
-    { icon:"🩸", title_it:"Giornata della donazione del sangue", title_de:"Blutspendetag", date:"24.08.2026", time:"17:00–19:00", place_it:"Centro Sanitario Bregaglia", place_de:"Gesundheitszentrum Bergell", desc_it:"Un gesto semplice che salva vite.", desc_de:"Eine einfache Geste, die Leben rettet." },
-    { icon:"💪", title_it:"Corso: movimento in età avanzata", title_de:"Kurs: Bewegung im Alter", date:"05.09.2026", time:"14:00–15:30", place_it:"Palestra fisioterapia", place_de:"Physio-Fitnessraum", desc_it:"Esercizi dolci con la fisioterapista.", desc_de:"Sanfte Übungen mit der Physiotherapeutin." },
-    { icon:"🩺", title_it:"Giornata informativa sulla salute", title_de:"Gesundheits-Infotag", date:"20.09.2026", time:"09:00–12:00", place_it:"Sala eventi CSB", place_de:"Veranstaltungssaal CSB", desc_it:"Misurazioni gratuite e consigli.", desc_de:"Kostenlose Messungen und Beratung." },
-    { icon:"🎶", title_it:"Pomeriggio musicale in casa anziani", title_de:"Musiknachmittag im Altersheim", date:"28.09.2026", time:"15:30", place_it:"Casa anziani – sala comune", place_de:"Altersheim – Gemeinschaftsraum", desc_it:"Aperto a familiari e ospiti.", desc_de:"Offen für Angehörige und Gäste." },
+    { cat:"salute", icon:"🩸", title_it:"Giornata donazione sangue", title_de:"Blutspendetag", date:"24.10.2026", time:"17:00–19:00", desc_it:"Un gesto semplice che salva vite.", desc_de:"Eine einfache Geste, die Leben rettet." },
+    { cat:"corsi", icon:"🧘", title_it:"Nuovo corso di ginnastica dolce", title_de:"Neuer Kurs: sanfte Gymnastik", date:"28.10.2026", time:"09:30", desc_it:"Esercizi dolci con la fisioterapista.", desc_de:"Sanfte Übungen mit der Physiotherapeutin." },
+    { cat:"carehome", icon:"🍂", title_it:"Festa alla Casa anziani", title_de:"Fest im Altersheim", date:"17.10.2026", time:"14:30", desc_it:"Pomeriggio di festa aperto ai familiari.", desc_de:"Festnachmittag für Angehörige." },
+    { cat:"salute", icon:"🧴", title_it:"Nuovo specialista presente al CSB", title_de:"Neuer Facharzt am CSB", date:"15.10.2026", time:"", desc_it:"Il dermatologo sarà presente al CSB.", desc_de:"Der Hautarzt ist am CSB anwesend." },
+    { cat:"cafe", icon:"🍲", title_it:"Nuovo menù stagionale", title_de:"Neues Saisonmenü", date:"20.10.2026", time:"", desc_it:"Piatti autunnali in caffetteria.", desc_de:"Herbstgerichte in der Cafeteria." },
   ],
 
-  // Contatti UFFICIALI del Centro Sanitario Bregaglia (fonte: csbregaglia.ch)
+  // Notifiche
+  notifications: [
+    { id:"n1", icon:"🥡", cat:"cafe", title_it:"Il tuo takeaway è pronto.", title_de:"Dein Take-away ist bereit.", time_it:"5 min fa", time_de:"vor 5 Min.", unread:true },
+    { id:"n2", icon:"🧺", cat:"laundry", title_it:"La lavanderia ha completato il tuo ordine.", title_de:"Die Wäscherei hat deine Bestellung erledigt.", time_it:"1 ora fa", time_de:"vor 1 Std.", unread:true },
+    { id:"n3", icon:"🏋️", cat:"physio", title_it:"Domani hai prenotato la palestra alle 10:00.", title_de:"Morgen hast du den Fitnessraum um 10:00 gebucht.", time_it:"2 ore fa", time_de:"vor 2 Std.", unread:true },
+    { id:"n4", icon:"📅", cat:"events", title_it:"Nuovo evento CSB disponibile.", title_de:"Neue CSB-Veranstaltung verfügbar.", time_it:"Ieri", time_de:"Gestern", unread:false },
+    { id:"n5", icon:"🧴", cat:"specialists", title_it:"Il dermatologo sarà presente al CSB il 15 ottobre.", title_de:"Der Hautarzt ist am 15. Oktober am CSB.", time_it:"Ieri", time_de:"Gestern", unread:false },
+    { id:"n6", icon:"🍲", cat:"meals", title_it:"Il tuo pasto a domicilio di domani è confermato.", title_de:"Deine Mahlzeit für morgen ist bestätigt.", time_it:"2 giorni fa", time_de:"vor 2 Tagen", unread:false },
+    { id:"n7", icon:"🔔", cat:"reminders", title_it:"È arrivato il momento del promemoria che avevi impostato.", title_de:"Deine eingestellte Erinnerung ist fällig.", time_it:"2 giorni fa", time_de:"vor 2 Tagen", unread:false },
+  ],
+  notifPrefs: [
+    { id:"p_orders", it:"Ordini e takeaway", de:"Bestellungen & Take-away", on:true },
+    { id:"p_book", it:"Prenotazioni", de:"Buchungen", on:true },
+    { id:"p_laundry", it:"Lavanderia", de:"Wäscherei", on:true },
+    { id:"p_events", it:"Eventi e novità", de:"Veranstaltungen", on:true },
+    { id:"p_reminders", it:"Promemoria salute", de:"Gesundheits-Erinnerungen", on:true },
+  ],
+
+  // Prenotazioni iniziali (demo)
+  bookings: [
+    { icon:"🏋️", title_it:"Palestra", title_de:"Fitnessraum", when_it:"Domani · 10:00", when_de:"Morgen · 10:00", status:"confirmed" },
+    { icon:"🤸", title_it:"Fisioterapia individuale", title_de:"Einzel-Physiotherapie", when_it:"Mar 20.10 · 11:00", when_de:"Di 20.10 · 11:00", status:"confirmed" },
+    { icon:"🩺", title_it:"Richiesta visita medica", title_de:"Arzttermin-Anfrage", when_it:"Preferenza: Gio mattina", when_de:"Wunsch: Do Vormittag", status:"pending" },
+    { icon:"🧴", title_it:"Visita dermatologica", title_de:"Hautarzt-Termin", when_it:"15.10.2026 · 14:00", when_de:"15.10.2026 · 14:00", status:"confirmed" },
+  ],
+  bookingsPast: [
+    { icon:"🥡", title_it:"Takeaway caffetteria", title_de:"Take-away Cafeteria", when_it:"10.10.2026", when_de:"10.10.2026" },
+    { icon:"🧺", title_it:"Ordine lavanderia L-1248", title_de:"Wäscherei-Auftrag L-1248", when_it:"02.10.2026", when_de:"02.10.2026" },
+  ],
+
+  // Ricevute (demo)
+  receipts: [
+    { date:"10.10.2026", desc_it:"Takeaway caffetteria", desc_de:"Take-away Cafeteria", amount:18.00 },
+    { date:"02.10.2026", desc_it:"Lavanderia L-1248", desc_de:"Wäscherei L-1248", amount:24.00 },
+  ],
+
+  // Contatti ufficiali CSB
   contacts: [
-    { icon:"☎️", label_it:"Centralino", label_de:"Zentrale", value:"+41 81 838 11 99", emergency:false },
-    { icon:"🚑", label_it:"Emergenze", label_de:"Notfall", value:"144", emergency:true },
-    { icon:"🩺", label_it:"Studio medico", label_de:"Arztpraxis", value:"+41 81 838 11 45", emergency:false },
-    { icon:"🤸", label_it:"Fisioterapia", label_de:"Physiotherapie", value:"+41 81 838 11 25", emergency:false },
-    { icon:"🏠", label_it:"Spitex", label_de:"Spitex", value:"+41 81 822 18 04", emergency:false },
-    { icon:"🛏️", label_it:"Reparto degenza (1° piano)", label_de:"Abteilung (1. Stock)", value:"+41 81 838 11 30", emergency:false },
-    { icon:"🛏️", label_it:"Reparto degenza (2° piano)", label_de:"Abteilung (2. Stock)", value:"+41 81 838 11 90", emergency:false },
-    { icon:"⚕️", label_it:"Studio medico Maloja", label_de:"Arztpraxis Maloja", value:"+41 81 553 50 90", emergency:false },
+    { icon:"🌳", label_it:"Centro Sanitario Bregaglia", label_de:"Gesundheitszentrum Bergell", value:"+41 81 838 11 99" },
+    { icon:"🩺", label_it:"Studio medico", label_de:"Arztpraxis", value:"+41 81 838 11 45" },
+    { icon:"🤸", label_it:"Fisioterapia", label_de:"Physiotherapie", value:"+41 81 838 11 25" },
+    { icon:"🏠", label_it:"Spitex", label_de:"Spitex", value:"+41 81 822 18 04" },
+    { icon:"🌳", label_it:"Casa anziani", label_de:"Altersheim", value:"+41 81 838 11 90" },
+    { icon:"☕", label_it:"Caffetteria", label_de:"Cafeteria", value:"+41 81 838 11 99" },
+    { icon:"🧺", label_it:"Lavanderia", label_de:"Wäscherei", value:"+41 81 838 11 99" },
+    { icon:"📋", label_it:"Amministrazione", label_de:"Verwaltung", value:"+41 81 838 11 99" },
+    { icon:"🩻", label_it:"Specialisti", label_de:"Fachärzte", value:"+41 81 838 11 45" },
   ],
-  // Dati istituzionali ufficiali
   org: {
-    name: "Centro Sanitario Bregaglia",
     address_it: "Flin 5, 7606 Promontogno (GR)",
-    address_de: "Flin 5, 7606 Promontogno (GR)",
     address2_it: "Sede Maloja: Strada Cantonale 370, 7516 Maloja",
-    address2_de: "Standort Maloja: Strada Cantonale 370, 7516 Maloja",
-    email: "info@csbregaglia.ch",
-    web: "www.csbregaglia.ch",
-    visitHours_it: "Tutti i giorni 10:00–12:00 · 14:00–20:00",
-    visitHours_de: "Täglich 10:00–12:00 · 14:00–20:00",
+    email: "info@csbregaglia.ch", web: "www.csbregaglia.ch",
   },
 
-  // Casa anziani – diario area famiglia
-  careHomeDiary: [
-    { icon:"☕", text_it:"Colazione consumata regolarmente.", text_de:"Frühstück regelmässig eingenommen." },
-    { icon:"👥", text_it:"Partecipazione all'attività di gruppo.", text_de:"Teilnahme an der Gruppenaktivität." },
-    { icon:"🚶", text_it:"Passeggiata accompagnata nel pomeriggio.", text_de:"Begleiteter Spaziergang am Nachmittag." },
-    { icon:"🤸", text_it:"Visita fisioterapica effettuata.", text_de:"Physiotherapie durchgeführt." },
-    { icon:"✉️", text_it:"Messaggio del reparto disponibile.", text_de:"Mitteilung der Abteilung verfügbar." },
+  payMethods: [
+    { id:"twint", label:"TWINT", icon:"📱" },
+    { id:"card", label_it:"Carta di credito", label_de:"Kreditkarte", icon:"💳" },
+    { id:"invoice", label_it:"Fattura", label_de:"Rechnung", icon:"🧾" },
   ],
-
-  // Messaggi predefiniti per la chat
-  chatPresets: {
-    laundry: [
-      { from:"me", it:"Buongiorno, vorrei sapere se la biancheria sarà pronta entro venerdì.", de:"Guten Tag, ist die Wäsche bis Freitag bereit?", time:"09:12" },
-      { from:"them", it:"Buongiorno, confermiamo che sarà pronta venerdì dalle ore 14:00.", de:"Guten Tag, wir bestätigen: bereit ab Freitag 14:00 Uhr.", time:"09:20" },
-    ],
-    default: [
-      { from:"them", it:"Buongiorno, come possiamo aiutarla?", de:"Guten Tag, wie können wir helfen?", time:"08:00" },
-    ]
-  },
 };
-
-const CHAT_SERVICES = [
-  { id:"medical", icon:"🩺", key:"s_medical" },
-  { id:"physio", icon:"🤸", key:"s_physio" },
-  { id:"spitex", icon:"🏠", key:"s_spitex" },
-  { id:"carehome", icon:"🌳", key:"s_home" },
-  { id:"cafe", icon:"☕", key:"s_cafe" },
-  { id:"laundry", icon:"🧺", key:"s_laundry" },
-  { id:"admin", icon:"📋", key:"s_contacts" },
-];

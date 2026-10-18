@@ -1,88 +1,63 @@
-# MyCSB – Prototipo
+# MyCSB – Prototipo (Concept dimostrativo)
 
-**Tutti i servizi del Centro Sanitario Bregaglia in un unico luogo.**
+**Un solo accesso. Tutti i servizi. Sempre con te.**
+*Il Centro Sanitario Bregaglia sempre con te.*
 
-Prototipo dimostrativo (web app responsive) realizzato per il concorso interno di
-idee innovative. Presenta il Centro Sanitario Bregaglia come un unico punto di
-accesso digitale per cittadini, pazienti, familiari e clienti esterni.
+MyCSB è lo **sportello digitale** dei servizi del Centro Sanitario Bregaglia:
+una web app semplice e intuitiva con cui cittadini, utenti, familiari,
+collaboratori e clienti esterni possono **scoprire, consultare, prenotare e
+(dove previsto) acquistare** i servizi del CSB.
 
-> ⚠️ Prototipo dimostrativo. Tutti i dati sono **fittizi**. Nessun collegamento a
-> sistemi reali, nessun dato sanitario autentico.
+> ⚠️ **Concept dimostrativo.** Dati fittizi. Non è una cartella clinica, non
+> contiene referti né dati sanitari, e non sostituisce i software o gli
+> strumenti di comunicazione interni del CSB. Servizi, integrazioni, prenotazioni
+> e pagamenti saranno definiti con i rispettivi settori in caso di sviluppo.
 
----
+## Come aprire
 
-## Come aprire il prototipo
+Web app statica (HTML/CSS/JS), nessuna installazione.
+- Doppio clic su `index.html`, oppure
+- Online (GitHub Pages): https://immobiliaredetanti.github.io/csbsara/
+- Server locale: `python3 -m http.server 8000`
 
-Non serve alcuna installazione: è una web app statica (HTML/CSS/JavaScript).
-
-- **Modo più semplice:** apri il file `index.html` con un doppio clic nel browser.
-- **Da smartphone / con QR code:** pubblica la cartella su un hosting statico
-  (es. GitHub Pages) e genera un QR code che punta all'indirizzo. La schermata
-  iniziale del prototipo simula già l'accesso tramite QR code.
-- **Server locale (opzionale):**
-  ```bash
-  python3 -m http.server 8000
-  # poi apri http://localhost:8000
-  ```
-
-Responsive: ottimizzata per smartphone, utilizzabile anche da desktop (viene
-mostrata dentro una cornice tipo telefono).
-
----
-
-## Struttura del progetto
+## Struttura
 
 ```
-index.html        Contenitore dell'app
-css/styles.css    Design system (palette bianco/beige/marrone/crema)
-js/data.js        Dati dimostrativi e traduzioni IT / DE
-js/app.js         Router, viste e interazioni
+index.html        Contenitore (logo, font Lato)
+css/styles.css    Design system (palette CSB: bianco/crema/beige/tortora/bordeaux)
+js/data.js        Dati demo e traduzioni IT/DE
+js/app.js         Router, viste, carrello/pagamenti, ricerca, interazioni
+assets/           Logo ufficiale CSB + QR code
 ```
-
----
 
 ## Caratteristiche
 
-- **Bilingue IT / DE** con pulsante di cambio lingua in ogni schermata.
-- **Doppio accesso:** pubblico (servizi, orari, menù, eventi, contatti) e
-  personale (documenti, appuntamenti, fatture) con codice dimostrativo **1234**
-  e 2FA simulata.
-- **Navigazione inferiore** a 5 sezioni: Home, Servizi, Prenotazioni, Notifiche, Profilo.
-- **Design** pulito, rassicurante, pensato anche per persone anziane: testi
-  leggibili, pulsanti grandi, icone intuitive, pochi passaggi.
+- **Bilingue IT / DE** con selettore in ogni schermata.
+- **Identità visiva** allineata al sito ufficiale csbregaglia.ch (logo albero,
+  palette tortora/bordeaux/crema, font umanista).
+- **Accesso pubblico** per consultare servizi, menù, specialisti, eventi,
+  orari e contatti; **account demo** (Anna Rossi) richiesto solo per prenotare,
+  ordinare, pagare, gestire lavanderia, promemoria e le proprie prenotazioni.
+- **Home personalizzata** dopo il login ("Buongiorno Anna", "Oggi per te").
 
-### Percorsi cliccabili simulati
+### Sezioni
 
-Accesso via QR code · Home · Menù caffetteria · Prenotazione pasto a domicilio ·
-Prenotazione visita medica · Richiesta fisioterapia · Richiesta Spitex ·
-Area famiglia (codice **1234**) · Consultazione referto · Visualizzazione fattura ·
-Notifiche · Messaggio alla lavanderia · Specialisti · Promemoria sanitari.
+Mangiare & ordinare (Caffetteria · Pranzo collaboratori · Pasti a domicilio) ·
+Salute & prevenzione (Studio medico) · Specialisti · I miei promemoria ·
+Fisioterapia & movimento (palestra + corsi) · Spitex · Lavanderia (anche per
+clienti esterni, con tracking e messaggistica) · Casa anziani · Eventi & novità ·
+Notifiche · Prenotazioni · Pagamenti e ricevute · Area personale · Contatti ·
+Ricerca.
 
-### Servizi inclusi
+### Percorsi interattivi simulati
 
-Studio medico · Fisioterapia · Spitex · Casa anziani (+ Area famiglia) ·
-Caffetteria · Pasti a domicilio · Lavanderia · Specialisti e dentista ·
-Promemoria sanitari · Area personale · Notifiche · Eventi e novità ·
-Contatti e numeri utili · Messaggistica sicura.
+Menù del giorno · ordine takeaway · pranzo collaboratori · pasti a domicilio
+(piano settimanale) · richiesta visita medica · presenza specialisti ·
+promemoria salute · prenotazione palestra · iscrizione a un corso · richiesta
+Spitex · servizio e messaggistica lavanderia · tracking ordine · iscrizione
+eventi · partecipazione eventi Casa anziani · notifiche · le mie prenotazioni ·
+**pagamento simulato** (carrello → metodo → ricevuta).
 
-### Utente dimostrativo
+### Utente demo
 
-Maria Rossi · nata il 15.03.1958 · numero utente CSB-000125.
-Familiare assistito: Giuseppe Rossi (Casa anziani → Area famiglia).
-
----
-
-## Sviluppi futuri (non inclusi nel prototipo)
-
-Pagamenti online · integrazione con calendario personale · autenticazione
-avanzata · traduzione completa · collegamento reale ai software CSB
-(cartella clinica, fatturazione, KomedHealth, firma elettronica).
-
----
-
-## Codici di prova
-
-| Cosa | Codice |
-|------|--------|
-| Accesso area personale | `1234` (qualsiasi codice accettato nel prototipo) |
-| Accesso area famiglia | `1234` |
+Anna Rossi — accesso con un clic (login dimostrativo).

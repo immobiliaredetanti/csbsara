@@ -1,47 +1,42 @@
 /* =========================================================
-   MyCSB – Logica applicazione (prototipo)
-   Router semplice a stato + rendering delle viste.
+   MyCSB v2 – Logica applicazione (prototipo / concept)
    ========================================================= */
+
+const CSB_MAPS_Q = encodeURIComponent("Centro Sanitario Bregaglia, Flin 5, 7606 Promontogno, Svizzera");
 
 const state = {
   lang: "it",
-  authed: false,          // area personale sbloccata
-  familyUnlocked: false,  // area famiglia sbloccata
+  authed: false,
   route: "welcome",
   param: null,
-  pin: "",
+  cart: [],
   history: [],
+  pendingAfterLogin: null,
+  query: "",
 };
 
-/* Indirizzo ufficiale CSB per mappa e indicazioni (Google Maps) */
-const CSB_MAPS_Q = encodeURIComponent("Centro Sanitario Bregaglia, Flin 5, 7606 Promontogno, Svizzera");
-
-/* ------------------- Helpers ------------------- */
+/* ------------- Helpers ------------- */
 const $ = (sel, root = document) => root.querySelector(sel);
 const t = (k) => (I18N[state.lang] && I18N[state.lang][k]) || I18N.it[k] || k;
-const L = (obj, base) => obj[base + "_" + state.lang] ?? obj[base + "_it"] ?? "";
+const L = (obj, base) => obj[`${base}_${state.lang}`] ?? obj[`${base}_it`] ?? "";
+const LL = (obj) => (obj ? (obj[state.lang] ?? obj.it ?? "") : "");
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const money = (n) => "CHF " + Number(n).toFixed(2);
 
 function go(route, param = null) {
-  if (state.route !== route || state.param !== param) {
-    state.history.push({ route: state.route, param: state.param });
-  }
-  state.route = route;
-  state.param = param;
+  if (state.route !== route || state.param !== param) state.history.push({ route: state.route, param: state.param });
+  state.route = route; state.param = param; state.query = "";
   render();
-  const main = $(".app-main");
-  if (main) main.scrollTop = 0;
+  const m = $(".app-main"); if (m) m.scrollTop = 0;
 }
 function back() {
-  const prev = state.history.pop();
-  if (prev) { state.route = prev.route; state.param = prev.param; render(); }
-  else go("home");
+  const p = state.history.pop();
+  if (p) { state.route = p.route; state.param = p.param; render(); } else go("home");
 }
-function setLang(l) { state.lang = l; DATA.user.language = l; render(); }
-
+function setLang(l) { state.lang = l; render(); }
 function unreadCount() { return DATA.notifications.filter(n => n.unread).length; }
 
-/* ------------------- Toast ------------------- */
+/* ------------- Toast ------------- */
 function toast(msg, ok = true) {
   let wrap = $(".toast-wrap");
   if (!wrap) { wrap = document.createElement("div"); wrap.className = "toast-wrap"; $(".app-frame").appendChild(wrap); }
@@ -53,7 +48,7 @@ function toast(msg, ok = true) {
   setTimeout(() => el.remove(), 2950);
 }
 
-/* ------------------- Sheet (modale dal basso) ------------------- */
+/* ------------- Sheet ------------- */
 function openSheet(html) {
   closeSheet();
   const ov = document.createElement("div");
@@ -63,48 +58,92 @@ function openSheet(html) {
   $(".app-frame").appendChild(ov);
   return ov;
 }
-function closeSheet() { const ov = $(".sheet-overlay"); if (ov) ov.remove(); }
+function closeSheet() { const o = $(".sheet-overlay"); if (o) o.remove(); }
+function successSheet(title, sub, extra = "") {
+  openSheet(`<div class="success-box">
+    <div class="s-check">✓</div>
+    <h2>${esc(title)}</h2>
+    ${sub ? `<p class="muted">${esc(sub)}</p>` : ""}
+    ${extra}
+    <button class="btn btn-primary mt-16" onclick="closeSheet()">${t("close")}</button>
+  </div>`);
+}
+function pickChip(btn) {
+  btn.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("selected"));
+  btn.classList.add("selected");
+}
 
-/* Foglio di conferma "Richiesta inviata con successo" */
-function successSheet(extraHtml = "") {
+/* ------------- Logo ------------- */
+function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=7" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=7" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+
+/* ------------- Login ------------- */
+function loginSheet(after) {
+  state.pendingAfterLogin = after || null;
   openSheet(`
-    <div class="success-box">
-      <div class="s-check">✓</div>
-      <h2>${t("request_sent")}</h2>
-      <p class="muted">${t("request_sent_sub")}</p>
-      ${extraHtml}
-      <button class="btn btn-primary mt-16" onclick="closeSheet()">${t("close")}</button>
-    </div>`);
+    <h2>${t("login")}</h2>
+    <p class="muted">${t("login_needed")}</p>
+    <div class="field"><label>E-mail</label><input value="anna.rossi@example.ch"></div>
+    <div class="field"><label>Password</label><input type="password" value="demo1234"></div>
+    <button class="btn btn-primary btn-lg" onclick="doLogin()">${t("login")}</button>
+    <p class="faint text-center mt-8">${state.lang==='de'?'Demo-Konto: Anna Rossi':'Account demo: Anna Rossi'}</p>
+  `);
+}
+function doLogin() {
+  state.authed = true;
+  const cb = state.pendingAfterLogin; state.pendingAfterLogin = null;
+  closeSheet();
+  toast(state.lang==='de' ? "Angemeldet" : "Accesso effettuato");
+  if (typeof cb === "function") cb(); else render();
+}
+function requireLogin(cb) { if (state.authed) cb(); else loginSheet(cb); }
+function logout() { state.authed = false; toast(state.lang==='de'?"Abgemeldet":"Disconnesso"); go("home"); }
+
+/* ------------- Carrello ------------- */
+function addToCart(it, de, price) {
+  state.cart.push({ it, de, price });
+  toast((state.lang==='de'?"In den Warenkorb: ":"Aggiunto al carrello: ") + (state.lang==='de'?de:it));
+  render();
+}
+function removeCart(i) { state.cart.splice(i, 1); render(); if ($(".sheet-overlay")) cartSheet(); }
+function cartTotal() { return state.cart.reduce((s, x) => s + x.price, 0); }
+function cartSheet() {
+  if (!state.cart.length) { openSheet(`<h2>${t("cart")}</h2><div class="empty"><div class="e-ico">🛒</div>${t("cart_empty")}</div><button class="btn btn-secondary" onclick="closeSheet()">${t("close")}</button>`); return; }
+  const lines = state.cart.map((x, i) => `<div class="cart-line"><span class="cl-name">${state.lang==='de'?esc(x.de):esc(x.it)}</span><span class="cl-price">${money(x.price)}</span><button class="cl-del" onclick="removeCart(${i})">🗑️</button></div>`).join("");
+  openSheet(`<h2>${t("cart")}</h2>${lines}
+    <div class="cart-total"><span>${t("total")}</span><span>${money(cartTotal())}</span></div>
+    <button class="btn btn-primary btn-lg" onclick="checkoutSheet()">${t("checkout")} →</button>`);
+}
+function checkoutSheet() {
+  const methods = DATA.payMethods.map((m, i) => `
+    <div class="pay-method ${i===0?'sel':''}" onclick="selPay(this)" data-id="${m.id}">
+      <span class="pm-ico">${m.icon}</span>
+      <span class="pm-label">${m.label || L(m,'label')}</span>
+      <span class="pm-radio"></span>
+    </div>`).join("");
+  openSheet(`<h2>${t("pay_method")}</h2>
+    <div class="cart-total" style="padding-top:0"><span>${t("total")}</span><span>${money(cartTotal())}</span></div>
+    ${methods}
+    <button class="btn btn-primary btn-lg mt-8" onclick="paySuccess()">${t("pay")} ${money(cartTotal())}</button>`);
+}
+function selPay(el) { el.parentElement.querySelectorAll(".pay-method").forEach(p => p.classList.remove("sel")); el.classList.add("sel"); }
+function paySuccess() {
+  const total = cartTotal();
+  const today = "18.10.2026";
+  state.cart.forEach(x => DATA.receipts.unshift({ date: today, desc_it: x.it, desc_de: x.de, amount: x.price }));
+  state.cart = [];
+  successSheet(t("pay_success"), null, `<div class="badge ok" style="margin-top:8px">${money(total)}</div>`);
+  render();
 }
 
-/* Logo CSB ufficiale (albero) – file SVG vettoriale */
-function treeLogo(cls = "logo-tree") {
-  return `<img src="assets/logo-csb.svg?v=5" class="${cls}" alt="Centro Sanitario Bregaglia">`;
-}
-/* Logo CSB ufficiale completo (albero + scritta) */
-function fullLogo(cls = "logo-full") {
-  return `<img src="assets/logo-csb-full.svg?v=5" class="${cls}" alt="Centro Sanitario Bregaglia">`;
-}
-
-/* ------------------- Header + Nav ------------------- */
+/* ------------- Header + Nav ------------- */
 function headerHtml(title, showBack) {
-  const langBtns = `<div class="lang-toggle">
+  const lang = `<div class="lang-toggle">
       <button class="${state.lang==='it'?'active':''}" onclick="setLang('it')">IT</button>
-      <button class="${state.lang==='de'?'active':''}" onclick="setLang('de')">DE</button>
-    </div>`;
-  if (!showBack) {
-    return `<header class="app-header">
-      <div class="h-brand">${treeLogo('h-logo')}<span class="brand-name">MyCSB</span></div>
-      ${langBtns}
-    </header>`;
-  }
-  return `<header class="app-header has-back">
-    <button class="h-back" onclick="back()" aria-label="${t('back')}">‹</button>
-    <div class="h-title">${esc(title)}</div>
-    ${langBtns}
-  </header>`;
+      <button class="${state.lang==='de'?'active':''}" onclick="setLang('de')">DE</button></div>`;
+  if (!showBack) return `<header class="app-header"><div class="h-brand">${treeLogo('h-logo')}<span class="brand-name">MyCSB</span></div>${lang}</header>`;
+  return `<header class="app-header has-back"><button class="h-back" onclick="back()" aria-label="indietro">‹</button><div class="h-title">${esc(title)}</div>${lang}</header>`;
 }
-
 function navHtml() {
   const items = [
     { r:"home", ico:"🏠", k:"nav_home" },
@@ -116,46 +155,45 @@ function navHtml() {
   const uc = unreadCount();
   return `<nav class="bottom-nav">${items.map(it => `
     <button class="${state.route===it.r?'active':''}" onclick="go('${it.r}')">
-      <span class="nav-ico">${it.ico}</span>
-      <span>${t(it.k)}</span>
+      <span class="nav-ico">${it.ico}</span><span>${t(it.k)}</span>
       ${it.r==='notifications' && uc>0 ? `<span class="nav-badge">${uc}</span>` : ''}
     </button>`).join("")}</nav>`;
 }
-
-/* ------------------- Router / render ------------------- */
-function render() {
-  const app = $(".app-frame");
-  // Schermate a tutto campo senza nav
-  if (state.route === "welcome") { app.innerHTML = renderWelcome(); return; }
-  if (state.route === "login")   { app.innerHTML = renderLogin(); return; }
-  if (state.route === "familyGate") { app.innerHTML = renderFamilyGate(); return; }
-
-  const map = {
-    home: { title:"MyCSB", back:false, body: viewHome },
-    services: { title:t("nav_services"), back:false, body: viewServices },
-    bookings: { title:t("nav_bookings"), back:false, body: viewBookings },
-    notifications: { title:t("nav_notifications"), back:false, body: viewNotifications },
-    profile: { title:t("nav_profile"), back:false, body: viewProfile },
-    service: { title:"", back:true, body: viewService },
-    chatList: { title:t("s_messages"), back:true, body: viewChatList },
-    chatThread: { title:"", back:true, body: viewChatThread },
-    family: { title:t("s_home"), back:true, body: viewFamily },
-    final: { title:"MyCSB", back:true, body: viewFinal },
-  };
-  const cfg = map[state.route] || map.home;
-  const showBack = cfg.back;
-  app.innerHTML = `${headerHtml(cfg.title, showBack)}<main class="app-main"><div class="view">${cfg.body()}</div></main>${navHtml()}`;
+function cartFab() {
+  if (!state.cart.length) return "";
+  if (["welcome","login"].includes(state.route)) return "";
+  return `<button class="cart-fab" onclick="cartSheet()">🛒 ${t("cart")} · ${money(cartTotal())}</button>`;
 }
 
-/* ================= SCHERMATE FULL ================= */
+/* ------------- Router ------------- */
+function render() {
+  const app = $(".app-frame");
+  if (state.route === "welcome") { app.innerHTML = renderWelcome(); return; }
+
+  const map = {
+    home:          { title:"MyCSB", back:false, body: viewHome },
+    services:      { title:t("nav_services"), back:false, body: viewServices },
+    bookings:      { title:t("my_bookings"), back:false, body: viewBookings },
+    notifications: { title:t("nav_notifications"), back:false, body: viewNotifications },
+    profile:       { title:t("nav_profile"), back:false, body: viewProfile },
+    service:       { title:"", back:true, body: viewService },
+    receipts:      { title:t("receipts"), back:true, body: viewReceipts },
+    concept:       { title:t("concept_badge"), back:true, body: viewConcept },
+  };
+  const cfg = map[state.route] || map.home;
+  app.innerHTML = `${headerHtml(cfg.title, cfg.back)}<main class="app-main"><div class="view">${cfg.body()}</div></main>${navHtml()}${cartFab()}`;
+}
+
+/* ================= WELCOME ================= */
 function renderWelcome() {
   return `<div class="center-screen">
     ${fullLogo('logo-full')}
-    <h1 style="font-size:2rem;margin:10px 0 2px;color:var(--wine)">MyCSB</h1>
-    <p class="muted" style="max-width:280px">${t("welcome_sub")}</p>
-    <div class="qr-box"><img src="assets/qr.svg" alt="QR code MyCSB" width="100%" height="100%"></div>
-    <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona il QR code per accedere':'QR-Code scannen zum Öffnen'}</p>
-    <div style="width:100%;max-width:300px;margin-top:14px">
+    <h1 style="font-size:2rem;margin:8px 0 2px;color:var(--wine)">MyCSB</h1>
+    <p style="font-weight:700;color:var(--brown-soft);margin:0 0 4px">${t("subtitle")}</p>
+    <p class="muted" style="max-width:300px">${t("welcome_msg")}</p>
+    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=7" alt="QR" width="100%" height="100%"></div>
+    <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona per accedere':'Scannen zum Öffnen'}</p>
+    <div style="width:100%;max-width:300px;margin-top:10px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>
       <div class="lang-toggle" style="margin:16px auto 0;width:fit-content">
         <button class="${state.lang==='it'?'active':''}" onclick="setLang('it')">Italiano</button>
@@ -165,132 +203,122 @@ function renderWelcome() {
   </div>`;
 }
 
-function renderLogin() {
-  const dots = [0,1,2,3].map(i => `<div class="pin-dot ${i < state.pin.length ? 'filled':''}"></div>`).join("");
-  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
-  return `<div class="center-screen">
-    <button class="btn-ghost" style="position:absolute;top:16px;left:10px;font-size:1.6rem" onclick="go('home')">‹</button>
-    <div class="avatar" style="width:70px;height:70px;font-size:1.6rem">${DATA.user.initials}</div>
-    <h2 style="margin-top:14px">${t("login_personal")}</h2>
-    <p class="muted">${DATA.user.name} · ${DATA.user.userId}</p>
-    <p class="faint">${state.lang==='it'?'Codice dimostrativo: 1234':'Demo-Code: 1234'}</p>
-    <div class="pin-display">${dots}</div>
-    <div class="keypad">${keys.map(k => k==="" ? `<button class="blank"></button>` :
-       `<button onclick="pinPress('${k}')">${k}</button>`).join("")}</div>
-    <p class="faint" style="margin-top:18px;max-width:280px">🔒 ${state.lang==='it'?'Autenticazione a due fattori simulata':'Simulierte Zwei-Faktor-Authentifizierung'}</p>
-  </div>`;
-}
-function pinPress(k) {
-  if (k === "⌫") { state.pin = state.pin.slice(0,-1); render(); return; }
-  if (state.pin.length >= 4) return;
-  state.pin += k;
-  render();
-  if (state.pin.length === 4) {
-    setTimeout(() => {
-      if (state.pin === "1234" || true) { // il prototipo accetta qualsiasi codice
-        state.authed = true; state.pin = "";
-        const dest = state._afterLogin || "profile"; state._afterLogin = null;
-        toast(state.lang==='it' ? "Accesso effettuato" : "Angemeldet");
-        go(dest);
-      }
-    }, 220);
-  }
-}
-function requireAuth(dest) {
-  if (state.authed) { go(dest); return; }
-  state._afterLogin = dest;
-  state.pin = "";
-  state.route = "login"; state.param = null; render();
-}
-
-function renderFamilyGate() {
-  const dots = [0,1,2,3].map(i => `<div class="pin-dot ${i < state.pin.length ? 'filled':''}"></div>`).join("");
-  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
-  return `<div class="center-screen">
-    <button class="btn-ghost" style="position:absolute;top:16px;left:10px;font-size:1.6rem" onclick="go('service','carehome')">‹</button>
-    <div style="font-size:44px">🌳</div>
-    <h2 style="margin-top:6px">${state.lang==='it'?'Area famiglia':'Familienbereich'}</h2>
-    <p class="muted" style="max-width:280px">${state.lang==='it'?'Accesso riservato ai familiari autorizzati di Giuseppe Rossi.':'Zugang nur für autorisierte Angehörige von Giuseppe Rossi.'}</p>
-    <p class="faint">${state.lang==='it'?'Codice dimostrativo: 1234':'Demo-Code: 1234'}</p>
-    <div class="pin-display">${dots}</div>
-    <div class="keypad">${keys.map(k => k==="" ? `<button class="blank"></button>` :
-       `<button onclick="famPinPress('${k}')">${k}</button>`).join("")}</div>
-  </div>`;
-}
-function famPinPress(k) {
-  if (k === "⌫") { state.pin = state.pin.slice(0,-1); render(); return; }
-  if (state.pin.length >= 4) return;
-  state.pin += k; render();
-  if (state.pin.length === 4) {
-    setTimeout(() => { state.familyUnlocked = true; state.pin = ""; go("family"); }, 220);
-  }
-}
-
 /* ================= HOME ================= */
 function viewHome() {
-  const next = DATA.appointments[0];
-  const quick = [
-    { ico:"🍲", k:"quick_book_meal", act:"go('service','meals')" },
-    { ico:"🩺", k:"quick_book_visit", act:"go('service','medical')" },
-    { ico:"💬", k:"quick_messages", act:"go('chatList')" },
-    { ico:"🔔", k:"quick_reminders", act:"go('service','reminders')" },
-  ];
+  const de = state.lang === 'de';
+  const feat = DATA.featured.map(f => `
+    <div class="feature-card" onclick="go('${f.go[0]}','${f.go[1]}')">
+      <div class="f-img" style="background:var(--cream-2)">${f.icon}</div>
+      <div class="f-body"><div class="f-tag">${L(f,'tag')}</div><div class="f-title">${L(f,'title')}</div></div>
+    </div>`).join("");
   const tiles = DATA.services.map(s => `
     <div class="service-tile" onclick="go('service','${s.id}')">
-      <div class="ico">${s.icon}</div>
-      <div class="label">${t(s.key)}</div>
+      <div class="ico">${s.icon}</div><div class="label">${t(s.key)}</div>
     </div>`).join("");
 
-  return `
-    <div class="welcome">
-      ${treeLogo('logo-tree')}
-      <h1>${t("welcome_title")}</h1>
-      <p class="subtitle">${t("welcome_sub")}</p>
-    </div>
-
-    <div class="quick-row">
-      ${quick.map(q => `<button class="quick-chip" onclick="${q.act}"><span>${q.ico}</span>${t(q.k)}</button>`).join("")}
-    </div>
-
-    ${next ? `
-    <div class="card" style="background:linear-gradient(135deg,#8b8069,#a89a80);color:#fff;border:none" onclick="go('bookings')">
-      <div class="faint" style="color:#f3ead9;margin-bottom:4px">${t("next_appointment")}</div>
-      <div class="flex-between">
-        <div>
-          <div style="font-weight:800;font-size:1.1rem">${L(next,'title')}</div>
-          <div style="color:#f3ead9">${next.date} · ${next.time} · ${esc(next.who)}</div>
-        </div>
-        <div style="font-size:1.8rem">${next.icon}</div>
+  let personal = "";
+  if (state.authed) {
+    personal = `
+      <div class="greeting">${t("good_morning")} ${DATA.user.name.split(" ")[0]}</div>
+      <div class="faint" style="margin:-2px 0 12px">${t("today_for_you")}</div>
+      <div class="today-card" onclick="requireLogin(()=>go('service','stafflunch'))">
+        <div class="tc-ico">🍽️</div><div style="flex:1"><div class="tc-k">${t("s_stafflunch")}</div><div class="tc-t">${de?'Bestellung bestätigt':'Ordine confermato'} ✓</div></div>
       </div>
-    </div>` : ''}
+      <div class="today-card" onclick="go('bookings')">
+        <div class="tc-ico">🏋️</div><div style="flex:1"><div class="tc-k">${t("next_appt")}</div><div class="tc-t">${de?'Fitnessraum':'Palestra'}</div><div class="tc-s">${de?'Morgen 10:00':'Domani ore 10:00'}</div></div>
+      </div>
+      <div class="today-card" onclick="go('service','laundry')">
+        <div class="tc-ico">🧺</div><div style="flex:1"><div class="tc-k">${t("nav_notifications")}</div><div class="tc-t">${t("s_laundry")}</div><div class="tc-s">${de?'Deine Bestellung ist bereit.':'Il tuo ordine è pronto.'}</div></div>
+      </div>
+      <div class="divider"></div>`;
+  }
 
-    <div class="section-title">${t("home_services")}</div>
+  return `
+    <div class="welcome" style="padding:18px 16px 20px">
+      ${treeLogo('logo-tree')}
+      <h1 style="font-size:1.5rem;margin:6px 0 2px">${t("welcome_title")}</h1>
+      <p class="subtitle" style="font-size:.95rem">${t("subtitle")}</p>
+    </div>
+
+    <div class="search-bar">
+      <span class="s-ico">🔍</span>
+      <input type="text" placeholder="${t("search_ph")}" oninput="liveSearch(this.value)" onfocus="liveSearch(this.value)">
+    </div>
+    <div id="search-results"></div>
+    <div class="search-chips">
+      ${["dermatologo","pranzo","lavanderia","fisioterapia","palestra","Spitex"].map(q=>`<button class="sc" onclick="chipSearch('${q}')">${q}</button>`).join("")}
+    </div>
+
+    ${personal}
+
+    <div class="section-title" style="margin-top:6px">${t("featured")}</div>
+    <div class="carousel">${feat}</div>
+
+    <div class="section-title">${t("main_services")}</div>
     <div class="service-grid">${tiles}</div>
 
-    <div class="card mt-16" onclick="go('final')" style="cursor:pointer;background:var(--cream-2);border-style:dashed">
-      <div class="flex-between">
-        <div><strong style="color:var(--brown-dark)">MyCSB</strong><div class="faint">${t("final_slogan")}</div></div>
-        <span style="color:var(--ink-faint);font-size:20px">›</span>
-      </div>
+    <div class="concept-note" onclick="go('concept')" style="cursor:pointer">
+      <span class="cn-badge">${t("concept_badge")}</span>
+      <p>${t("claim")} — ${de?'mehr erfahren':'scopri di più'} ›</p>
     </div>
   `;
 }
 
+/* -------- Ricerca -------- */
+const SEARCH_INDEX = [
+  { id:"specialists", kw:["dermatolog","cardiolog","pneumolog","ginecolog","dentist","specialist","facharzt","zahnarzt","haut","augen"] },
+  { id:"eat", kw:["pranzo","mangiare","cibo","takeaway","menu","menù","essen","mittag","cafeteria","caffetteria"] },
+  { id:"mealshome", kw:["pasti a domicilio","domicilio","consegna","lieferung","mahlzeit"] },
+  { id:"laundry", kw:["lavanderia","biancheria","wäsch","stiratura","bucato"] },
+  { id:"physio", kw:["fisioterapia","palestra","movimento","ginnastica","corso","physio","fitness","gymnastik","kurs"] },
+  { id:"spitex", kw:["spitex","assistenza","domicilio","pflege","hilfe"] },
+  { id:"health", kw:["medico","studio medico","visita","arzt","salute","gesundheit","appuntamento","termin"] },
+  { id:"reminders", kw:["promemoria","controllo","erinnerung","prevenzione","vorsorge"] },
+  { id:"carehome", kw:["casa anziani","anziani","altersheim","festa","attività"] },
+  { id:"events", kw:["evento","eventi","novità","veranstaltung","bacheca"] },
+  { id:"contacts", kw:["contatti","telefono","numero","kontakt","nummer","indirizzo"] },
+];
+function matchServices(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return [];
+  const ids = new Set();
+  SEARCH_INDEX.forEach(e => { if (e.kw.some(k => k.includes(q) || q.includes(k))) ids.add(e.id); });
+  DATA.services.forEach(s => { if (t(s.key).toLowerCase().includes(q)) ids.add(s.id==="eat"?"eat":s.id); });
+  return [...ids];
+}
+function liveSearch(q) {
+  const box = $("#search-results"); if (!box) return;
+  const ids = matchServices(q);
+  if (!q.trim()) { box.innerHTML = ""; return; }
+  if (!ids.length) { box.innerHTML = `<div class="faint" style="padding:4px 2px 12px">${state.lang==='de'?'Keine Treffer':'Nessun risultato'}</div>`; return; }
+  const label = (id) => {
+    const svc = DATA.services.find(s => s.id === id);
+    if (svc) return { icon: svc.icon, name: t(svc.key), route:["service",id] };
+    const extra = { mealshome:{icon:"🍲",name:t("s_mealshome")}, health:{icon:"🩺",name:t("s_health_doctor")}, reminders:{icon:"🔔",name:t("s_reminders")} }[id];
+    return { icon: extra?.icon||"•", name: extra?.name||id, route:["service",id] };
+  };
+  box.innerHTML = `<div class="card" style="margin-bottom:12px">${ids.map(id => { const l = label(id); return `
+    <div class="list-row clickable" onclick="go('${l.route[0]}','${l.route[1]}')">
+      <div class="lr-ico">${l.icon}</div><div class="lr-body"><div class="lr-title">${esc(l.name)}</div></div><div class="lr-arrow">›</div>
+    </div>`; }).join("")}</div>`;
+}
+function chipSearch(q) { go("home"); setTimeout(() => { const i = $(".search-bar input"); if (i) { i.value = q; liveSearch(q); i.scrollIntoView({block:"center"}); } }, 60); }
+
 /* ================= SERVIZI (lista) ================= */
 function viewServices() {
+  const extra = [
+    { id:"reminders", icon:"🔔", key:"s_reminders", sub_it:"Controlli e scadenze che imposti tu", sub_de:"Selbst gesetzte Erinnerungen" },
+    { id:"receipts2", icon:"🧾", key:null, sub_it:"Pagamenti e ricevute", sub_de:"Zahlungen und Belege", label:t("receipts"), route:"receipts" },
+  ];
+  const all = [...DATA.services, ...extra];
   return `
     <h1 class="page-title">${t("nav_services")}</h1>
-    <p class="lead">${state.lang==='it'?'Tutti i servizi del Centro Sanitario Bregaglia.':'Alle Dienste des Gesundheitszentrums Bergell.'}</p>
+    <p class="lead">${state.lang==='de'?'Alle Dienste des CSB in einem Ort.':'Tutti i servizi del CSB in un unico luogo.'}</p>
     <div class="card">
-      ${DATA.services.map(s => `
-        <div class="list-row clickable" onclick="go('service','${s.id}')">
-          <div class="lr-ico">${s.icon}</div>
-          <div class="lr-body">
-            <div class="lr-title">${t(s.key)}</div>
-            <div class="lr-sub">${L(s,'sub')}</div>
-          </div>
-          <div class="lr-arrow">›</div>
-        </div>`).join("")}
+      ${all.map(s => `<div class="list-row clickable" onclick="${s.route?`go('${s.route}')`:`go('service','${s.id}')`}">
+        <div class="lr-ico">${s.icon}</div>
+        <div class="lr-body"><div class="lr-title">${s.label || t(s.key)}</div><div class="lr-sub">${L(s,'sub')}</div></div>
+        <div class="lr-arrow">›</div></div>`).join("")}
     </div>
   `;
 }
@@ -298,756 +326,579 @@ function viewServices() {
 /* ================= DISPATCH SERVIZIO ================= */
 function viewService() {
   switch (state.param) {
-    case "medical": return svcMedical();
+    case "eat": return svcEat();
+    case "cafeteria": return svcCafeteria();
+    case "stafflunch": return svcStaffLunch();
+    case "mealshome": return svcMealsHome();
+    case "health": return svcHealth();
+    case "specialists": return svcSpecialists();
+    case "reminders": return svcReminders();
     case "physio": return svcPhysio();
     case "spitex": return svcSpitex();
-    case "carehome": return svcCareHome();
-    case "cafe": return svcCafe();
-    case "meals": return svcMeals();
     case "laundry": return svcLaundry();
-    case "specialists": return svcSpecialists();
+    case "carehome": return svcCareHome();
     case "events": return svcEvents();
-    case "reminders": return svcReminders();
-    case "messages": return viewChatList();
     case "contacts": return svcContacts();
     default: return `<div class="empty">…</div>`;
   }
 }
 function svcHead(icon, titleKey, sub) {
-  return `<div style="text-align:center;margin-bottom:6px">
-    <div style="font-size:44px">${icon}</div>
-    <h1 class="page-title" style="margin-top:4px">${t(titleKey)}</h1>
-    <p class="lead">${esc(sub)}</p>
-  </div>`;
+  return `<div style="text-align:center;margin-bottom:8px">
+    <div style="font-size:42px">${icon}</div>
+    <h1 class="page-title" style="margin-top:2px">${typeof titleKey==='string'&&I18N.it[titleKey]?t(titleKey):esc(titleKey)}</h1>
+    <p class="lead">${esc(sub)}</p></div>`;
 }
 
-/* ---- 1. Studio medico ---- */
-function svcMedical() {
+/* -------- 1. MANGIARE & ORDINARE (hub) -------- */
+function svcEat() {
   const de = state.lang === 'de';
-  return svcHead("🩺","s_medical", de?"Ihre Hausarztpraxis am CSB.":"Il vostro studio medico di base al CSB.") + `
+  const areas = [
+    { id:"cafeteria", icon:"☕", k:"s_cafeteria", s_it:"Menù del giorno, prenota e takeaway", s_de:"Tagesmenü, reservieren, Take-away" },
+    { id:"stafflunch", icon:"🍽️", k:"s_stafflunch", s_it:"Riservato ai collaboratori CSB", s_de:"Für CSB-Mitarbeitende" },
+    { id:"mealshome", icon:"🍲", k:"s_mealshome", s_it:"Pasti caldi consegnati a casa", s_de:"Warme Mahlzeiten nach Hause" },
+  ];
+  return svcHead("🍽️","s_eat", de?"Caffetteria, pranzo e consegna a domicilio.":"Caffetteria, pranzo e consegna a domicilio.") +
+    areas.map(a => `<div class="hub-card" onclick="go('service','${a.id}')">
+      <div class="hc-ico">${a.icon}</div>
+      <div><div class="hc-t">${t(a.k)}</div><div class="hc-s">${de?a.s_de:a.s_it}</div></div>
+      <span class="hc-arrow">›</span></div>`).join("");
+}
+
+/* -------- Caffetteria -------- */
+function svcCafeteria() {
+  const de = state.lang === 'de';
+  const m = DATA.cafeMenuDay;
+  return svcHead("☕","s_cafeteria", de?"Menù, prezzi e take-away.":"Menù, prezzi e take-away.") + `
+    <div class="card"><div class="info-line"><span class="k">${de?"Öffnungszeiten":"Orari"}</span><span class="v">${DATA.cafeTimes}</span></div></div>
+    <div class="menu-card">
+      <div class="m-head"><span>${de?"Menü von heute":"Menù di oggi"}</span><span>${money(m.price)}</span></div>
+      <div class="m-body">${m.items.map(i=>`<div class="menu-item"><span class="mi-v">${LL(i)}</span></div>`).join("")}</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="cafeOrder(false)">🍽️ ${t("book")}</button>
+      <button class="btn btn-secondary" onclick="cafeOrder(true)">🥡 ${t("takeaway")}</button>
+    </div>
+    <button class="btn btn-secondary mt-16" onclick="cafeWeek()">📋 ${t("weekly_menu")}</button>
+  `;
+}
+let cafeQty = 1;
+function cafeOrder(takeaway) {
+  cafeQty = 1;
+  const de = state.lang === 'de';
+  const m = DATA.cafeMenuDay;
+  openSheet(`
+    <h2>${takeaway ? t("takeaway") : t("book")}</h2>
+    <div class="card" style="box-shadow:none;border:1px solid var(--line)"><strong>${de?"Menü von heute":"Menù di oggi"}</strong><div class="muted" style="font-size:.9rem">${m.items.map(i=>LL(i)).join(" · ")}</div><div class="price-tag mt-8">${money(m.price)}</div></div>
+    <div class="field"><label>${t("day")}</label><input type="date" value="2026-10-19"></div>
+    <div class="field"><label>${t("quantity")}</label>
+      <div class="qty"><button onclick="cafeQ(-1)">−</button><span class="qv" id="cafeqv">1</span><button onclick="cafeQ(1)">+</button></div></div>
+    <div class="field"><label>${t("pickup_time")}</label>
+      <div class="chip-select">${["11:30","12:00","12:30","13:00"].map((s,i)=>`<button type="button" class="chip ${i===1?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
+    <button class="btn btn-primary btn-lg" onclick="cafeAdd(${takeaway})">${takeaway? t("add_cart") : t("confirm")}</button>
+  `);
+}
+function cafeQ(d) { cafeQty = Math.max(1, cafeQty + d); const e = $("#cafeqv"); if (e) e.textContent = cafeQty; }
+function cafeAdd(takeaway) {
+  const total = DATA.cafeMenuDay.price * cafeQty;
+  closeSheet();
+  if (takeaway) {
+    requireLogin(() => { addToCart(`Takeaway caffetteria ×${cafeQty}`, `Take-away Cafeteria ×${cafeQty}`, total);
+      successSheet(t("order_confirmed"), state.lang==='de'?'Du erhältst eine Mitteilung zur Abholung.':'Riceverai una notifica per il ritiro.'); });
+  } else {
+    requireLogin(() => { DATA.bookings.unshift({icon:"☕",title_it:"Tavolo caffetteria",title_de:"Tisch Cafeteria",when_it:"19.10 · 12:00",when_de:"19.10 · 12:00",status:"confirmed"});
+      successSheet(t("order_confirmed")); });
+  }
+}
+function cafeWeek() {
+  openSheet(`<h2>${t("weekly_menu")}</h2>${DATA.cafeWeek.map(d=>`<div class="card" style="margin-bottom:8px"><div class="card-title" style="margin-bottom:4px">${L(d,'d')}</div><div class="muted">${L(d,'m')}</div></div>`).join("")}<button class="btn btn-secondary" onclick="closeSheet()">${t("close")}</button>`);
+}
+
+/* -------- Pranzo collaboratori -------- */
+function svcStaffLunch() {
+  const de = state.lang === 'de';
+  if (!state.authed) {
+    return svcHead("🍽️","s_stafflunch", de?"Für CSB-Mitarbeitende.":"Area riservata ai collaboratori CSB.") +
+      `<div class="card text-center pad-lg"><p class="muted">${t("login_needed")}</p><button class="btn btn-primary btn-lg" onclick="requireLogin(()=>go('service','stafflunch'))">🔒 ${t("login")}</button></div>`;
+  }
+  return svcHead("🍽️","s_stafflunch", de?"Bestelle dein Mittagessen für morgen.":"Ordina il tuo pranzo per domani.") + `
+    <div class="notice"><span class="n-ico">⏰</span><span>${de?"Bestellung bis 09:00 Uhr des Vortags.":"Ordina entro le 09:00 del giorno prima."}</span></div>
+    <div class="section-title" style="margin-top:6px">${de?"Mittagessen von morgen":"Pranzo di domani"}</div>
+    ${DATA.staffLunch.map((o,i)=>`<label class="pay-method ${i===0?'sel':''}" onclick="selPay(this)" data-id="${o.id}"><span class="pm-ico">${o.id==='V'?'🥗':'🍲'}</span><span class="pm-label">${L(o,'name')}</span><span class="pm-radio"></span></label>`).join("")}
+    <button class="btn btn-primary btn-lg mt-8" onclick="staffOrder()">${de?'Mein Mittagessen bestellen':'Ordina il mio pranzo'}</button>
+  `;
+}
+function staffOrder() { successSheet(t("lunch_booked")); DATA.bookings.unshift({icon:"🍽️",title_it:"Pranzo collaboratori",title_de:"Mitarbeiter-Mittagessen",when_it:"Domani",when_de:"Morgen",status:"confirmed"}); }
+
+/* -------- Pasti a domicilio -------- */
+const mealWeek = { mon:true, tue:true, wed:false, thu:true, fri:true };
+function svcMealsHome() {
+  const de = state.lang === 'de';
+  const days = [["mon","Lunedì","Montag"],["tue","Martedì","Dienstag"],["wed","Mercoledì","Mittwoch"],["thu","Giovedì","Donnerstag"],["fri","Venerdì","Freitag"]];
+  return svcHead("🍲","s_mealshome", de?"Warme Mahlzeiten nach Hause geliefert.":"Pasti caldi consegnati a casa.") + `
     <div class="card">
-      <div class="card-title">${de?"Öffnungszeiten":"Orari"}</div>
-      <div class="info-line"><span class="k">${de?"Mo–Fr":"Lun–Ven"}</span><span class="v">08:00–12:00 · 14:00–17:00</span></div>
-      <div class="info-line"><span class="k">${de?"Sa":"Sab"}</span><span class="v">08:00–11:00</span></div>
+      <div class="card-title">${de?"Wie es funktioniert":"Come funziona"}</div>
+      <p class="muted mb-0" style="font-size:.92rem">${de?"Wähle die Tage, an denen du eine Mahlzeit erhalten möchtest. Bestellbar auch für Angehörige.":"Scegli i giorni in cui ricevere il pasto. Ordinabile anche per un familiare."}</p>
+      <div class="info-line mt-8"><span class="k">${de?"Zonen":"Zone servite"}</span><span class="v" style="font-size:.82rem;text-align:right">${de?DATA.mealsZones_de:DATA.mealsZones_it}</span></div>
+      <div class="info-line"><span class="k">${de?"Preis / Mahlzeit":"Prezzo / pasto"}</span><span class="v">${money(DATA.mealsHomePrice)}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">${t("week_plan")}</div>
+      <div class="week-grid">
+        ${days.map(d=>`<div class="week-row"><span class="wr-day">${de?d[2]:d[1]}</span><button class="switch ${mealWeek[d[0]]?'on':''}" onclick="toggleDay('${d[0]}',this)"></button></div>`).join("")}
+      </div>
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="mealsConfirm()">🛒 ${de?'Woche bestellen':'Ordina la settimana'}</button>
+    <button class="btn btn-secondary mt-16" onclick="toast('${de?'Service pausiert':'Servizio sospeso'}')">⏸️ ${t("suspend")}</button>
+  `;
+}
+function toggleDay(d, btn) { mealWeek[d] = !mealWeek[d]; btn.classList.toggle("on"); }
+function mealsConfirm() {
+  const de = state.lang === 'de';
+  const n = Object.values(mealWeek).filter(Boolean).length;
+  if (!n) { toast(de?"Keine Tage gewählt":"Nessun giorno selezionato", false); return; }
+  requireLogin(() => {
+    addToCart(`Pasti a domicilio ×${n}`, `Mahlzeiten nach Hause ×${n}`, DATA.mealsHomePrice * n);
+    DATA.bookings.unshift({icon:"🍲",title_it:`Pasti a domicilio (${n} giorni)`,title_de:`Mahlzeiten (${n} Tage)`,when_it:"Settimana prossima",when_de:"Nächste Woche",status:"confirmed"});
+    successSheet(t("order_confirmed"), de?`${n} Mahlzeiten geplant.`:`${n} pasti pianificati.`);
+  });
+}
+
+/* -------- 4. Salute & prevenzione (studio medico) -------- */
+function svcHealth() {
+  const de = state.lang === 'de';
+  return svcHead("🩺","s_health", de?"Dienste entdecken und Zugang erleichtern.":"Scopri i servizi e accedi facilmente.") + `
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Kein klinischer Bereich: keine Befunde oder Krankenakten.":"Nessun dato clinico: qui non ci sono referti o cartelle."}</span></div>
+    <div class="card">
+      <div class="card-title">${t("s_health_doctor")}</div>
+      <div class="info-line"><span class="k">${de?"Öffnungszeiten":"Orari"}</span><span class="v">${de?"Mo–Fr auf Termin":"Lun–Ven su appuntamento"}</span></div>
       <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 838 11 45</span></div>
     </div>
     <div class="card">
-      <div class="card-title">${de?"Ärzteteam":"Medici disponibili"}</div>
-      ${DATA.doctors.map(d => `<div class="list-row"><div class="lr-ico">👨‍⚕️</div><div class="lr-body"><div class="lr-title">${d.name}</div><div class="lr-sub">${L(d,'role')}</div></div></div>`).join("")}
+      <div class="card-title">${de?"Ambulatorien":"Ambulatori"}</div>
+      ${DATA.doctors.map(d=>`<div class="list-row"><div class="lr-ico">👨‍⚕️</div><div class="lr-body"><div class="lr-title">${esc(d.name)}</div><div class="lr-sub">${L(d,'role')}</div></div></div>`).join("")}
     </div>
-    <div class="card">
-      <div class="card-title">${de?"Leistungen":"Prestazioni offerte"}</div>
-      <div class="pill-row">${(de?["Allgemeine Untersuchungen","Vorsorge","Impfungen","Blutuntersuchungen","Atteste","Rezepte"]:["Visite generali","Prevenzione","Vaccinazioni","Esami del sangue","Certificati","Ricette"]).map(x=>`<span class="badge info">${x}</span>`).join("")}</div>
-    </div>
-    <button class="btn btn-primary btn-lg" onclick="bookVisitFlow()">📅 ${de?"Termin buchen":"Prenota una visita"}</button>
+    <button class="btn btn-primary btn-lg" onclick="apptFlow()">📅 ${de?'Termin anfragen':'Richiedi appuntamento'}</button>
     <div class="btn-row mt-16">
-      <button class="btn btn-secondary" onclick="simpleRequest('${de?'Rezept-Anfrage':'Richiesta ricetta'}')">💊 ${de?"Rezept":"Ricetta"}</button>
-      <button class="btn btn-secondary" onclick="simpleRequest('${de?'Attest-Anfrage':'Richiesta certificato'}')">📄 ${de?"Attest":"Certificato"}</button>
-    </div>
-    <button class="btn btn-secondary mt-16" onclick="requireAuth('profile')">🗂️ ${de?"Meine Berichte ansehen":"Visualizza i miei referti"}</button>
-  `;
-}
-
-/* Flusso prenotazione visita */
-function bookVisitFlow() {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${de?"Termin buchen":"Prenota una visita"}</h2>
-    <div class="field"><label>${de?"Art der Untersuchung":"Tipo di visita"}</label>
-      <select id="bv-type">${DATA.visitTypes.map(v=>`<option>${de?v.de:v.it}</option>`).join("")}</select></div>
-    <div class="field"><label>${de?"Arzt/Ärztin":"Medico"}</label>
-      <select id="bv-doc">${DATA.doctors.map(d=>`<option>${d.name}</option>`).join("")}</select></div>
-    <div class="field"><label>${de?"Datum":"Data"}</label><input type="date" id="bv-date" value="2026-08-25"></div>
-    <div class="field"><label>${de?"Uhrzeit":"Fascia oraria"}</label>
-      <div class="chip-select" id="bv-slots">${DATA.timeSlots.map((s,i)=>`<button type="button" class="chip ${i===3?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea placeholder="${de?'z.B. Nüchtern':'es. a digiuno'}"></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet()">${de?"Anfrage senden":"Invia richiesta"}</button>
-  `);
-}
-function pickChip(btn) {
-  const wrap = btn.parentElement;
-  wrap.querySelectorAll(".chip").forEach(c => c.classList.remove("selected"));
-  btn.classList.add("selected");
-}
-function simpleRequest(title) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${esc(title)}</h2>
-    <p class="muted">${de?"Beschreiben Sie kurz Ihre Anfrage.":"Descriva brevemente la sua richiesta."}</p>
-    <div class="field"><label>${t("note_optional")}</label><textarea placeholder="${de?'Ihre Nachricht…':'Il tuo messaggio…'}"></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet()">${t("send")}</button>
-  `);
-}
-
-/* ---- 2. Fisioterapia ---- */
-function svcPhysio() {
-  const de = state.lang === 'de';
-  const gcolors = ["#7d9a6b","#9b7a58","#6f8fa6","#c9a06a"];
-  return svcHead("🤸","s_physio", de?"Behandlungen, Fitnessraum und Übungen.":"Trattamenti, palestra ed esercizi.") + `
-    <div class="gallery">
-      ${["🏋️","🧘","🤸","💪"].map((e,i)=>`<div class="g-item" style="background:${gcolors[i]}">${e}</div>`).join("")}
-    </div>
-    <div class="card" style="border-left:4px solid var(--leaf)">
-      <div class="card-title">${de?"Ihr nächster Termin":"Il tuo prossimo appuntamento"}</div>
-      <div><strong>${de?"Physiotherapie":"Fisioterapia individuale"}</strong></div>
-      <div class="muted">${de?"Dienstag":"Martedì"} 18.08.2026 · 10:30 · ${de?"Betreuerin":"Operatrice"}: Giulia</div>
-    </div>
-    <div class="card">
-      <div class="card-title">${de?"Behandlungen":"Trattamenti disponibili"}</div>
-      ${DATA.physioTreatments.map(x=>`<div class="info-line"><span class="k">${de?x.de:x.it}</span><span class="v">›</span></div>`).join("")}
-    </div>
-    <div class="card">
-      <div class="card-title">${de?"Zugewiesene Übungen":"Esercizi assegnati"}</div>
-      ${DATA.physioExercises.map(x=>`<div class="list-row"><div class="lr-ico">✅</div><div class="lr-body"><div class="lr-title" style="font-size:.95rem">${de?x.de:x.it}</div></div></div>`).join("")}
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-leaf" onclick="bookPhysio(false)">📅 ${de?"Sitzung buchen":"Prenota seduta"}</button>
-      <button class="btn btn-secondary" onclick="bookPhysio(true)">🏋️ ${de?"Fitnessraum":"Palestra"}</button>
-    </div>
-    <button class="btn btn-secondary mt-16" onclick="requireAuth('profile')">🗂️ ${de?"Physio-Berichte":"Referti fisioterapici"}</button>
-  `;
-}
-function bookPhysio(gym) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${gym ? (de?"Fitnessraum buchen":"Prenota palestra") : (de?"Sitzung buchen":"Prenota seduta")}</h2>
-    ${!gym ? `<div class="field"><label>${de?"Behandlung":"Trattamento"}</label><select>${DATA.physioTreatments.map(x=>`<option>${de?x.de:x.it}</option>`).join("")}</select></div>` : ''}
-    <div class="field"><label>${de?"Datum":"Data"}</label><input type="date" value="2026-08-18"></div>
-    <div class="field"><label>${de?"Uhrzeit":"Orario"}</label>
-      <div class="chip-select">${["09:00","10:30","14:00","15:30"].map((s,i)=>`<button type="button" class="chip ${i===1?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea></textarea></div>
-    <button class="btn btn-leaf btn-lg" onclick="successSheet()">${t("send")}</button>
-  `);
-}
-
-/* ---- 3. Spitex ---- */
-function svcSpitex() {
-  const de = state.lang === 'de';
-  return svcHead("🏠","s_spitex", de?"Hauspflege für Sie und Ihre Angehörigen.":"Assistenza domiciliare per lei e i suoi familiari.") + `
-    <div class="card">
-      <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 822 18 04</span></div>
-      <div class="info-line"><span class="k">Email</span><span class="v">spitex@csbregaglia.ch</span></div>
-    </div>
-    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Angehörige senden eine Anfrage mit Wünschen. Der Spitex-Koordinator prüft und bestätigt oder schlägt eine Alternative vor.":"Il familiare invia una richiesta con le preferenze. Il coordinatore Spitex verifica e conferma o propone un'alternativa."}</span></div>
-    <div class="section-title" style="margin-top:8px">${de?"Geplante Einsätze":"Interventi programmati"}</div>
-    ${DATA.spitexPlanned.map(p=>`
-      <div class="card" style="margin-bottom:10px">
-        <div class="flex-between">
-          <div style="display:flex;gap:12px;align-items:center">
-            <div class="lr-ico">${p.icon}</div>
-            <div><div class="lr-title">${L(p,'title')}</div><div class="lr-sub">${L(p,'when')} · ${esc(p.who)}</div></div>
-          </div>
-          ${statusBadge(p.status)}
-        </div>
-      </div>`).join("")}
-    <button class="btn btn-primary btn-lg mt-16" onclick="spitexRequest()">➕ ${de?"Neuen Einsatz anfragen":"Richiedi un nuovo intervento"}</button>
-    <div class="btn-row mt-16">
-      <button class="btn btn-secondary" onclick="simpleRequest('${de?'Abwesenheit melden':'Segnala assenza'}')">🚫 ${de?"Abwesenheit":"Assenza"}</button>
-      <button class="btn btn-secondary" onclick="openChatThread('spitex')">✉️ ${de?"Koordinator":"Coordinatore"}</button>
+      <button class="btn btn-secondary" onclick="go('service','specialists')">🩻 ${t("s_specialists")}</button>
+      <button class="btn btn-secondary" onclick="go('service','reminders')">🔔 ${t("s_reminders")}</button>
     </div>
   `;
 }
-function statusBadge(status) {
-  if (status === "confirmed") return `<span class="badge ok">${t("st_confirmed")}</span>`;
-  if (status === "alt") return `<span class="badge alt">${t("st_alt")}</span>`;
-  return `<span class="badge wait">${t("st_wait")}</span>`;
-}
-function spitexRequest() {
+function apptFlow() {
   const de = state.lang === 'de';
   openSheet(`
-    <h2>${de?"Assistenz-Anfrage":"Richiesta di assistenza"}</h2>
-    <div class="field"><label>${de?"Gewünschter Dienst":"Servizio richiesto"}</label>
-      <select>${DATA.spitexServices.map(x=>`<option>${de?x.de:x.it}</option>`).join("")}</select></div>
-    <div class="field"><label>${de?"Bevorzugter Tag":"Giorno preferito"}</label>
-      <div class="chip-select">${(de?["Mo","Di","Mi","Do","Fr"]:["Lun","Mar","Mer","Gio","Ven"]).map((d,i)=>`<button type="button" class="chip ${i===0?'selected':''}" onclick="pickChip(this)">${d}</button>`).join("")}</div></div>
-    <div class="field"><label>${de?"Zeitfenster":"Fascia oraria"}</label>
-      <div class="chip-select">${["08:00–10:00","10:00–12:00","14:00–16:00"].map((s,i)=>`<button type="button" class="chip ${i===0?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea placeholder="${de?'z.B. vor dem Arzttermin':'es. preferibilmente prima della visita medica'}"></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet('<div class=&quot;badge wait&quot; style=&quot;margin-top:10px&quot;>${t('st_wait')}</div>')">${t("send")}</button>
+    <h2>${de?'Termin anfragen':'Richiedi appuntamento'}</h2>
+    <div class="field"><label>${de?"Leistung":"Prestazione"}</label><select>${DATA.visitTypes.map(v=>`<option>${LL(v)}</option>`).join("")}</select></div>
+    <div class="field"><label>${t("day")}</label><input type="date" value="2026-10-22"></div>
+    <div class="field"><label>${de?"Bevorzugte Zeit":"Fascia oraria preferita"}</label>
+      <div class="chip-select">${DATA.timeSlots.slice(0,6).map((s,i)=>`<button type="button" class="chip ${i===3?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
+    <div class="field"><label>${t("note_opt")}</label><textarea></textarea></div>
+    <button class="btn btn-primary btn-lg" onclick="apptSend()">${t("send")}</button>
   `);
 }
-
-/* ---- 4. Casa anziani ---- */
-function svcCareHome() {
-  const de = state.lang === 'de';
-  return svcHead("🌳","s_home", de?"Wohnen, Betreuung und Familienbereich.":"Residenza, cura e area famiglia.") + `
-    <div class="card">
-      <div class="card-title">${de?"Abteilungen":"I reparti"}</div>
-      <div class="list-row"><div class="lr-ico">🩺</div><div class="lr-body"><div class="lr-title">${de?"Akutabteilung":"Reparto acuto"}</div><div class="lr-sub">${de?"4 Betten · Akutpflege":"4 letti · cure acute"}</div></div></div>
-      <div class="list-row"><div class="lr-ico">🌿</div><div class="lr-body"><div class="lr-title">${de?"Langzeitpflege":"Reparto lungodegenza"}</div><div class="lr-sub">${de?"34 Plätze · Langzeitpflege":"34 posti letto · cure di lunga durata"}</div></div></div>
-      <div class="list-row"><div class="lr-ico">🧠</div><div class="lr-body"><div class="lr-title">${de?"Demenzabteilung":"Reparto demenza"}</div><div class="lr-sub">${de?"Demenz und neurodegenerative Erkrankungen":"Demenza e malattie neurodegenerative"}</div></div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">${de?"Besuchszeiten":"Orari di visita"}</div>
-      <div class="info-line"><span class="k">${de?"Täglich":"Tutti i giorni"}</span><span class="v">10:00–12:00 · 14:00–20:00</span></div>
-      <div class="info-line"><span class="k">${de?"Abteilung 1. Stock":"Reparto 1° piano"}</span><span class="v">+41 81 838 11 30</span></div>
-      <div class="info-line"><span class="k">${de?"Abteilung 2. Stock":"Reparto 2° piano"}</span><span class="v">+41 81 838 11 90</span></div>
-    </div>
-    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Eine telefonische Voranmeldung bei der Abteilung vor dem Besuch ist erwünscht.":"È gradito l'annuncio telefonico al reparto prima di effettuare la visita."}</span></div>
-    <div class="card">
-      <div class="card-title">${de?"Aktivitäten":"Attività"}</div>
-      <div class="pill-row">${(de?["Gruppenaktivitäten","Musik","Spaziergänge","Feste","Physiotherapie"]:["Attività di gruppo","Musica","Passeggiate","Feste","Fisioterapia"]).map(x=>`<span class="badge info">${x}</span>`).join("")}</div>
-    </div>
-    <div class="card" style="background:linear-gradient(135deg,#98303d,#7e2833);color:#fff;border:none;cursor:pointer" onclick="openFamilyArea()">
-      <div class="flex-between">
-        <div><div style="font-weight:800;font-size:1.1rem">🔒 ${de?"Familienbereich":"Area famiglia"}</div>
-        <div style="color:#f6ebec">${de?"Reservierter Zugang für Angehörige":"Accesso riservato ai familiari autorizzati"}</div></div>
-        <span style="font-size:20px">›</span>
-      </div>
-    </div>
-  `;
-}
-function openFamilyArea() {
-  if (state.familyUnlocked) { go("family"); return; }
-  state.pin = "";
-  state.route = "familyGate"; state.param = null; render();
-}
-function viewFamily() {
-  const de = state.lang === 'de';
-  return `
-    <div style="text-align:center;margin-bottom:10px">
-      <div style="font-size:40px">🌳</div>
-      <h1 class="page-title">${de?"Familienbereich":"Area famiglia"}</h1>
-      <p class="lead">${de?"Betreute Person":"Persona assistita"}: <strong>Giuseppe Rossi</strong></p>
-    </div>
-    <div class="notice"><span class="n-ico">🔐</span><span>${de?"Die für Angehörige sichtbaren Informationen hängen von den Berechtigungen, der Einwilligung der Person und den Datenschutzregeln ab.":"Le informazioni visibili ai familiari dipendono dalle autorizzazioni, dal consenso dell'utente e dalle regole di protezione dei dati."}</span></div>
-    <div class="card">
-      <div class="card-title">📔 ${de?"Tagebuch – Heute, 22.07.2026":"Diario giornaliero – Oggi, 22.07.2026"}</div>
-      ${DATA.careHomeDiary.map(d=>`<div class="list-row"><div class="lr-ico">${d.icon}</div><div class="lr-body"><div class="lr-title" style="font-size:.98rem;font-weight:600">${L(d,'text')}</div></div></div>`).join("")}
-    </div>
-    <div class="card">
-      <div class="card-title">🍽️ ${de?"Teilnahme an Mahlzeiten":"Partecipazione ai pasti"}</div>
-      <div class="info-line"><span class="k">${de?"Frühstück":"Colazione"}</span><span class="v badge ok">${de?"Eingenommen":"Consumata"}</span></div>
-      <div class="info-line"><span class="k">${de?"Mittagessen":"Pranzo"}</span><span class="v badge ok">${de?"Eingenommen":"Consumato"}</span></div>
-    </div>
-    <div class="card">
-      <div class="card-title">📅 ${de?"Nächste Termine":"Prossimi appuntamenti"}</div>
-      <div class="info-line"><span class="k">${de?"Physiotherapie":"Fisioterapia"}</span><span class="v">23.07 · 10:30</span></div>
-      <div class="info-line"><span class="k">${de?"Musiknachmittag":"Pomeriggio musicale"}</span><span class="v">28.09 · 15:30</span></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="openChatThread('carehome')">✉️ ${de?"Abteilung":"Reparto"}</button>
-      <button class="btn btn-secondary" onclick="simpleRequest('${de?'Gesprächsanfrage':'Richiesta di colloquio'}')">🗣️ ${de?"Gespräch":"Colloquio"}</button>
-    </div>
-  `;
+function apptSend() {
+  requireLogin(() => {
+    DATA.bookings.push({icon:"🩺",title_it:"Richiesta visita medica",title_de:"Arzttermin-Anfrage",when_it:"In attesa di conferma",when_de:"Wartet auf Bestätigung",status:"pending"});
+    successSheet(t("request_sent"), t("request_sent_sub"), `<div class="badge wait" style="margin-top:8px">${t("st_pending")}</div>`);
+  });
 }
 
-/* ---- 5. Caffetteria ---- */
-function svcCafe() {
-  const de = state.lang === 'de';
-  const m = DATA.cafeMenuDay;
-  return svcHead("☕","s_cafe", de?"Menü, Preise und Reservierungen.":"Menù, prezzi e prenotazioni.") + `
-    <div class="card">
-      <div class="info-line"><span class="k">${de?"Öffnungszeiten":"Orari"}</span><span class="v">08:00–18:00</span></div>
-    </div>
-    <div class="menu-card">
-      <div class="m-head"><span>${L(m,'date')}</span><span>${m.price}</span></div>
-      <div class="m-body">
-        ${m.items.map(i=>`<div class="menu-item"><span class="mi-k">${L(i,'k')}</span><span class="mi-v">${L(i,'v')}</span></div>`).join("")}
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="cafeBook(false)">🍽️ ${de?"Tisch reservieren":"Prenota tavolo"}</button>
-      <button class="btn btn-secondary" onclick="cafeBook(true)">🥡 ${de?"Take-away":"Asporto"}</button>
-    </div>
-    <button class="btn btn-secondary mt-16" onclick="cafeWeek()">📋 ${de?"Wochenmenü ansehen":"Visualizza menù settimanale"}</button>
-  `;
-}
-function cafeBook(takeaway) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${takeaway ? (de?"Take-away bestellen":"Ordina da asporto") : (de?"Tisch reservieren":"Prenota tavolo")}</h2>
-    <div class="field"><label>${de?"Datum":"Data"}</label><input type="date" value="2026-07-23"></div>
-    ${!takeaway ? `<div class="field"><label>${de?"Personen":"Persone"}</label><select><option>1</option><option>2</option><option selected>3</option><option>4</option></select></div>` : ''}
-    <div class="field"><label>${de?"Uhrzeit":"Orario"}</label>
-      <div class="chip-select">${["11:30","12:00","12:30","13:00"].map((s,i)=>`<button type="button" class="chip ${i===1?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet()">${t("confirm")}</button>
-  `);
-}
-function cafeWeek() {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${de?"Wochenmenü":"Menù settimanale"}</h2>
-    ${DATA.cafeWeek.map(d=>`<div class="card" style="margin-bottom:8px"><div class="card-title" style="margin-bottom:4px">${L(d,'d')}</div><div class="muted">${L(d,'m')}</div></div>`).join("")}
-    <button class="btn btn-secondary" onclick="closeSheet()">${t("close")}</button>
-  `);
-}
-
-/* ---- 6. Pasti a domicilio ---- */
-function svcMeals() {
-  const de = state.lang === 'de';
-  return svcHead("🍲","s_meals", de?"Warme Mahlzeiten bequem nach Hause.":"Pasti caldi comodamente a casa.") + `
-    <div class="card" style="border-left:4px solid var(--leaf)">
-      <div class="flex-between"><div class="card-title" style="margin:0">${de?"Nächste Lieferung":"Prossima consegna"}</div>${statusBadge('confirmed')}</div>
-      <div class="info-line"><span class="k">${de?"Datum":"Data"}</span><span class="v">24.07.2026</span></div>
-      <div class="info-line"><span class="k">${de?"Lieferung":"Consegna"}</span><span class="v">11:30–12:30</span></div>
-      <div class="info-line"><span class="k">Menù</span><span class="v">${de?"Vollmenü":"Menù completo"}</span></div>
-      <div class="btn-row mt-8">
-        <button class="btn btn-secondary btn-sm" onclick="mealBook(true)" style="width:100%">✏️ ${de?"Ändern":"Modifica"}</button>
-        <button class="btn btn-secondary btn-sm" onclick="mealCancel()" style="width:100%">🚫 ${de?"Stornieren":"Annulla"}</button>
-      </div>
-    </div>
-    <button class="btn btn-primary btn-lg" onclick="mealBook(false)">➕ ${de?"Mahlzeit buchen":"Prenota un pasto"}</button>
-    <div class="section-title">${de?"Bestellverlauf":"Storico ordini"}</div>
-    <div class="card">
-      ${DATA.mealsHistory.map(h=>`<div class="list-row"><div class="lr-ico">🍲</div><div class="lr-body"><div class="lr-title">${L(h,'menu')}</div><div class="lr-sub">${h.date}</div></div>${statusBadge(h.status)}</div>`).join("")}
-    </div>
-  `;
-}
-function mealBook(edit) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${edit ? (de?"Bestellung ändern":"Modifica prenotazione") : (de?"Mahlzeit buchen":"Prenota un pasto")}</h2>
-    <div class="field"><label>${de?"Tag":"Giorno"}</label><input type="date" value="2026-07-25"></div>
-    <div class="field"><label>Menù</label>
-      <div class="chip-select">${(de?["Vollmenü","Leichtes Menü","Vegetarisch"]:["Menù completo","Menù leggero","Vegetariano"]).map((s,i)=>`<button type="button" class="chip ${i===0?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea placeholder="${de?'z.B. ohne Salz':'es. senza sale'}"></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet('<div class=&quot;badge ok&quot; style=&quot;margin-top:10px&quot;>${t('st_confirmed')}</div>')">${t("confirm")}</button>
-  `);
-}
-function mealCancel() {
-  const de = state.lang === 'de';
-  toast(de ? "Bestellung storniert" : "Prenotazione annullata");
-}
-
-/* ---- 7. Lavanderia ---- */
-function svcLaundry() {
-  const de = state.lang === 'de';
-  const o = DATA.laundryOrder;
-  const stepLabels = { received: t("st_received"), processing: t("st_processing"), ready: t("st_ready") };
-  return svcHead("🧺","s_laundry", de?"Wäscheservice für externe Kunden.":"Servizio lavanderia per clienti esterni.") + `
-    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Die Wäscherei des CSB steht auch externen Kunden offen: Hotels, Restaurants und Ferienwohnungen.":"La lavanderia del CSB è aperta anche a clienti esterni: hotel, ristoranti e case di vacanza."}</span></div>
-    <div class="card">
-      <div class="card-title">${de?"Preisliste":"Listino prezzi"}</div>
-      ${DATA.laundryServices.map(s=>`<div class="info-line"><span class="k">${de?s.de:s.it}</span><span class="v">${s.price}</span></div>`).join("")}
-    </div>
-    <div class="card">
-      <div class="flex-between"><div class="card-title" style="margin:0">${de?"Auftrag":"Ordine"} ${o.id}</div></div>
-      <div class="stepper mt-8">
-        ${o.steps.map((s,i)=>`
-          <div class="step ${i < o.current ? 'done' : i===o.current ? 'current':''}">
-            <div class="dot">${i <= o.current ? '✓':''}</div>
-            <div class="st-body"><div class="st-title">${stepLabels[s]}</div>${i===o.current?`<div class="st-sub">${de?'Aktueller Status':'Stato attuale'}</div>`:''}</div>
-          </div>`).join("")}
-      </div>
-      <div class="notice" style="margin:6px 0 0"><span class="n-ico">✅</span><span>${L(o,'msg')}</span></div>
-    </div>
-    <button class="btn btn-primary btn-lg" onclick="laundryRequest()">📦 ${de?"Abholung anfragen":"Richiedi ritiro"}</button>
-    <div class="btn-row mt-16">
-      <button class="btn btn-secondary" onclick="simpleRequest('${de?'Kostenvoranschlag':'Richiesta preventivo'}')">💰 ${de?"Offerte":"Preventivo"}</button>
-      <button class="btn btn-secondary" onclick="openChatThread('laundry')">💬 ${de?"Nachricht":"Messaggio"}</button>
-    </div>
-  `;
-}
-function laundryRequest() {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${de?"Abholung anfragen":"Richiesta di ritiro"}</h2>
-    <div class="field"><label>${de?"Art":"Tipo di servizio"}</label><select>${DATA.laundryServices.map(s=>`<option>${de?s.de:s.it}</option>`).join("")}</select></div>
-    <div class="field"><label>${de?"Abholdatum":"Data ritiro"}</label><input type="date" value="2026-07-24"></div>
-    <div class="field"><label>${de?"Adresse":"Indirizzo"}</label><input value="${esc(DATA.user.address)}"></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet()">${t("send")}</button>
-  `);
-}
-
-/* ---- 8. Specialisti ---- */
+/* -------- 5. Specialisti -------- */
 function svcSpecialists() {
   const de = state.lang === 'de';
-  return svcHead("🦷","s_specialists", de?"Fachärzte und Partner-Professionals.":"Specialisti e professionisti partner.") + `
-    ${DATA.specialists.map((s,i)=>`
+  return svcHead("🩻","s_specialists", de?"Fachärzte am CSB.":"Specialisti al CSB.") +
+    DATA.specialists.map(s => `
       <div class="card">
         <div class="flex-between">
           <div style="display:flex;gap:12px;align-items:center">
             <div class="lr-ico" style="font-size:22px">${s.icon}</div>
-            <div>
-              <div class="lr-title">${L(s,'name')}</div>
-              <div class="lr-sub">${esc(s.who)} · ${L(s,'days')}</div>
-            </div>
+            <div><div class="lr-title">${L(s,'field')}</div>
+            <div class="spec-next">${de?'Nächste Präsenz: ':'Prossima presenza: '}${s.next_de&&de?s.next_de:s.next}</div></div>
           </div>
           ${s.partner ? `<span class="badge info">Partner</span>` : `<span class="badge ok">CSB</span>`}
         </div>
-        <button class="btn btn-secondary btn-sm mt-8" style="width:100%" onclick="specVisit('${esc(L(s,'name'))}')">📅 ${de?"Termin anfragen":"Richiedi visita"}</button>
-      </div>`).join("")}
-    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Einige Fachpersonen sind unabhängig vom CSB, werden aber als Partner der Plattform vorgestellt.":"Alcuni professionisti sono indipendenti dal CSB ma presentati come partner della piattaforma."}</span></div>
-  `;
+        ${s.partner ? `<div class="faint mt-8">${de?"Unabhängiger Partner-Fachmann.":"Professionista indipendente / Partner."}</div>`:``}
+        <div class="btn-row mt-8">
+          <button class="btn btn-secondary btn-sm" style="width:100%" onclick="toast('${de?'Informationen':'Informazioni'}')">ℹ️ ${t("info")}</button>
+          <button class="btn btn-primary btn-sm" style="width:100%" onclick="specReq('${esc(L(s,'field'))}')">📅 ${t("request")}</button>
+        </div>
+      </div>`).join("");
 }
-function specVisit(name) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2>${de?"Termin anfragen":"Richiedi visita"}</h2>
-    <p class="muted">${esc(name)}</p>
-    <div class="field"><label>${de?"Datum":"Data"}</label><input type="date" value="2026-09-02"></div>
-    <div class="field"><label>${de?"Uhrzeit":"Orario"}</label>
-      <div class="chip-select">${["09:00","10:30","14:00","15:30"].map((s,i)=>`<button type="button" class="chip ${i===2?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
-    <div class="field"><label>${t("note_optional")}</label><textarea></textarea></div>
-    <button class="btn btn-primary btn-lg" onclick="successSheet()">${t("send")}</button>
-  `);
+function specReq(name) {
+  openSheet(`<h2>${t("request")} – ${esc(name)}</h2>
+    <div class="field"><label>${t("day")}</label><input type="date" value="2026-10-29"></div>
+    <div class="field"><label>${t("note_opt")}</label><textarea></textarea></div>
+    <button class="btn btn-primary btn-lg" onclick="(function(){requireLogin(function(){DATA.bookings.push({icon:'🩻',title_it:'Richiesta specialista',title_de:'Facharzt-Anfrage',when_it:'In attesa di conferma',when_de:'Wartet auf Bestätigung',status:'pending'});successSheet(t('request_sent'),t('request_sent_sub'));});})()">${t("send")}</button>`);
 }
 
-/* ---- 9. Promemoria sanitari ---- */
+/* -------- 6. Promemoria salute -------- */
 function svcReminders() {
   const de = state.lang === 'de';
-  return svcHead("🔔","s_reminders", de?"Personalisierbare Gesundheits-Erinnerungen.":"Promemoria sanitari personalizzabili.") + `
+  return svcHead("🔔","s_reminders", de?"Freiwillige Erinnerungen, die du selbst setzt.":"Promemoria volontari che imposti tu.") + `
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Keine Diagnosen oder persönlichen medizinischen Empfehlungen.":"Nessuna diagnosi né raccomandazione medica personalizzata."}</span></div>
     ${DATA.reminders.map(r=>`
       <div class="card" style="${r.on?'':'opacity:.6'}">
         <div style="display:flex;gap:12px;align-items:flex-start">
           <div class="lr-ico">${r.icon}</div>
           <div style="flex:1">
-            <div style="font-weight:600;color:var(--ink)">${L(r,'text')}</div>
-            <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-              ${r.action ? `<button class="btn btn-primary btn-sm" onclick="reminderBook()">${de?'Jetzt buchen':'Prenota ora'}</button>` : `<button class="btn btn-secondary btn-sm" onclick="toast('${de?'Verschoben':'Posticipato'}')">${de?'Verschieben':'Posticipa'}</button>`}
-              <button class="switch ${r.on?'on':''}" onclick="toggleReminder('${r.id}',this)" aria-label="toggle"></button>
+            <div class="lr-title">${L(r,'title')}</div>
+            <div class="lr-sub">${L(r,'every')}</div>
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-secondary btn-sm" onclick="remFire('${esc(L(r,'title'))}')">${de?'Testen':'Prova promemoria'}</button>
+              <button class="switch ${r.on?'on':''}" onclick="remToggle('${r.id}',this)"></button>
             </div>
           </div>
         </div>
       </div>`).join("")}
-    <div class="notice"><span class="n-ico">💡</span><span>${de?"Aktivieren oder deaktivieren Sie einzelne Erinnerungen.":"Puoi attivare o disattivare i singoli promemoria."}</span></div>
   `;
 }
-function toggleReminder(id, btn) {
-  const r = DATA.reminders.find(x => x.id === id);
-  if (r) { r.on = !r.on; }
-  btn.classList.toggle("on");
-  btn.closest(".card").style.opacity = r && r.on ? "1" : ".6";
-}
-function reminderBook() { bookVisitFlow(); }
-
-/* ---- 13. Contatti ---- */
-function svcContacts() {
+function remToggle(id, btn) { const r = DATA.reminders.find(x=>x.id===id); if (r) r.on = !r.on; btn.classList.toggle("on"); btn.closest(".card").style.opacity = r && r.on ? "1" : ".6"; }
+function remFire(title) {
   const de = state.lang === 'de';
-  return svcHead("📞","s_contacts", de?"Nützliche Nummern und Standort.":"Numeri utili e come raggiungerci.") + `
+  openSheet(`
+    <div style="text-align:center;padding-top:6px"><div style="font-size:40px">🔔</div></div>
+    <h2 style="text-align:center;font-size:1.2rem">${de?'Erinnerung':'Promemoria'}</h2>
+    <p class="muted text-center">${de?`Es ist Zeit für die Erinnerung, die du eingestellt hattest: ${esc(title)}.`:`È arrivato il momento del promemoria che avevi impostato per: ${esc(title)}.`}</p>
+    <button class="btn btn-primary" onclick="closeSheet();go('service','specialists')">${t("discover")} / ${t("request")}</button>
+    <button class="btn btn-ghost" onclick="closeSheet();toast('${de?'Später erinnern':'Ti ricorderemo più tardi'}')">${t("remind_later")}</button>
+  `);
+}
+
+/* -------- 7. Fisioterapia & movimento -------- */
+function svcPhysio() {
+  const de = state.lang === 'de';
+  const gcolors = ["#9a8f79","#b3a082","#8b8069","#c9bda6"];
+  return svcHead("🤸","s_physio", de?"Therapie, Fitnessraum und Kurse.":"Trattamenti, palestra e corsi.") + `
+    <div class="gallery">${["🏋️","🧘","🤸","💪"].map((e,i)=>`<div class="g-item" style="background:${gcolors[i]}">${e}</div>`).join("")}</div>
+    <div class="card"><div class="card-title">${de?"Behandlungen":"Trattamenti"}</div>
+      <div class="pill-row">${DATA.physioTreatments.map(x=>`<span class="badge info">${LL(x)}</span>`).join("")}</div></div>
+    <button class="btn btn-primary btn-lg" onclick="physioReq()">🤸 ${de?'Physiotherapie anfragen':'Richiedi fisioterapia'}</button>
+
+    <div class="section-title">🏋️ ${t("gym_calendar")}</div>
+    ${DATA.gymSlots.map((s,i)=>`
+      <div class="slot ${s.free?'free':'busy'}" ${s.free?`onclick="gymBook('${de?s.day_de:s.day_it}','${s.time}')"`:''}>
+        <span class="sl-when">${de?s.day_de:s.day_it} · ${s.time}</span>
+        ${s.free?`<span class="badge ok">${t("st_available")}</span>`:`<span class="badge wait">${t("st_full")}</span>`}
+      </div>`).join("")}
+
+    <div class="section-title">🧘 ${t("courses")}</div>
+    ${DATA.courses.map((c,i)=>`
+      <div class="card">
+        <div class="flex-between">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="lr-ico" style="font-size:22px">${c.icon}</div>
+            <div><div class="lr-title">${L(c,'title')}</div><div class="lr-sub">${L(c,'when')} · ${c.places} ${t("places_left")}</div></div>
+          </div>
+          <span class="price-tag">${money(c.price)}</span>
+        </div>
+        <button class="btn btn-primary btn-sm mt-8" style="width:100%" onclick="courseJoin(${i})">${t("subscribe")}</button>
+      </div>`).join("")}`;
+}
+function physioReq() {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${de?'Physiotherapie anfragen':'Richiedi fisioterapia'}</h2>
+    <div class="field"><label>${de?"Behandlung":"Trattamento"}</label><select>${DATA.physioTreatments.map(x=>`<option>${LL(x)}</option>`).join("")}</select></div>
+    <div class="field"><label>${t("day")}</label><input type="date" value="2026-10-20"></div>
+    <div class="field"><label>${t("note_opt")}</label><textarea></textarea></div>
+    <button class="btn btn-primary btn-lg" onclick="(function(){requireLogin(function(){DATA.bookings.push({icon:'🤸',title_it:'Richiesta fisioterapia',title_de:'Physio-Anfrage',when_it:'In attesa di conferma',when_de:'Wartet auf Bestätigung',status:'pending'});successSheet(t('request_sent'),t('request_sent_sub'));});})()">${t("send")}</button>`);
+}
+function gymBook(day, time) {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${de?'Fitnessraum buchen':'Prenota palestra'}</h2>
+    <div class="card" style="box-shadow:none;border:1px solid var(--line)"><strong>🏋️ ${esc(day)} · ${esc(time)}</strong></div>
+    <button class="btn btn-primary btn-lg mt-8" onclick="(function(){requireLogin(function(){DATA.bookings.unshift({icon:'🏋️',title_it:'Palestra',title_de:'Fitnessraum',when_it:'${esc(day)} · ${esc(time)}',when_de:'${esc(day)} · ${esc(time)}',status:'confirmed'});successSheet(t('order_confirmed'));});})()">${t("confirm")}</button>`);
+}
+function courseJoin(i) {
+  const c = DATA.courses[i];
+  const de = state.lang === 'de';
+  requireLogin(() => {
+    addToCart(`Corso: ${c.title_it}`, `Kurs: ${c.title_de}`, c.price);
+    DATA.bookings.unshift({icon:c.icon,title_it:"Corso: "+c.title_it,title_de:"Kurs: "+c.title_de,when_it:c.when_it,when_de:c.when_de,status:"confirmed"});
+    successSheet(t("order_confirmed"), de?'Zum Warenkorb hinzugefügt.':'Aggiunto al carrello.');
+  });
+}
+
+/* -------- 8. Spitex -------- */
+function svcSpitex() {
+  const de = state.lang === 'de';
+  return svcHead("🏠","s_spitex", de?"Hauspflege: informieren und anfragen.":"Assistenza a domicilio: informati e richiedi.") + `
+    <div class="card"><div class="card-title">${de?"Dienste":"Servizi disponibili"}</div>
+      <div class="pill-row">${DATA.spitexServices.map(x=>`<span class="badge info">${LL(x)}</span>`).join("")}</div></div>
+    <div class="card"><div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">+41 81 822 18 04</span></div>
+      <div class="info-line"><span class="k">Email</span><span class="v">spitex@csbregaglia.ch</span></div></div>
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Angegebene Tage und Zeiten sind Wünsche. Die definitive Planung bestätigt die Spitex.":"Giorni e orari indicati sono preferenze. La pianificazione definitiva è confermata dallo Spitex."}</span></div>
+    <button class="btn btn-primary btn-lg" onclick="spitexReq()">📨 ${de?'Anfrage senden':'Invia richiesta'}</button>
+    <button class="btn btn-secondary mt-16" onclick="toast('${de?'Abwesenheit gemeldet':'Assenza segnalata'}')">🚫 ${de?'Abwesenheit melden':'Segnala assenza'}</button>
+  `;
+}
+function spitexReq() {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${de?'Assistenz-Anfrage':'Richiesta assistenza'}</h2>
+    <div class="field"><label>${de?"Dienst":"Servizio"}</label><select>${DATA.spitexServices.map(x=>`<option>${LL(x)}</option>`).join("")}</select></div>
+    <div class="field"><label>${de?"Bevorzugter Tag":"Giorno preferito"}</label>
+      <div class="chip-select">${(de?["Mo","Di","Mi","Do","Fr"]:["Lun","Mar","Mer","Gio","Ven"]).map((d,i)=>`<button type="button" class="chip ${i===0?'selected':''}" onclick="pickChip(this)">${d}</button>`).join("")}</div></div>
+    <div class="field"><label>${de?"Bevorzugte Zeit":"Fascia preferita"}</label>
+      <div class="chip-select">${["08:00–10:00","10:00–12:00","14:00–16:00"].map((s,i)=>`<button type="button" class="chip ${i===0?'selected':''}" onclick="pickChip(this)">${s}</button>`).join("")}</div></div>
+    <div class="field"><label>${t("note_opt")}</label><textarea></textarea></div>
+    <button class="btn btn-primary btn-lg" onclick="successSheet(t('request_sent'),t('request_sent_sub'),'<div class=&quot;badge wait&quot; style=&quot;margin-top:8px&quot;>'+t('st_pending')+'</div>')">${t("send")}</button>`);
+}
+
+/* -------- 9. Lavanderia -------- */
+function svcLaundry() {
+  const de = state.lang === 'de';
+  const stLabels = [t("st_received"), t("st_processing"), t("st_ready")];
+  return svcHead("🧺","s_laundry", de?"Ein CSB-Dienst – auch für externe Kunden.":"Un servizio del CSB – anche per clienti esterni.") + `
+    <div class="card"><div class="card-title">${de?"Preisliste":"Listino"}</div>
+      ${DATA.laundryServices.map(s=>`<div class="info-line"><span class="k">${LL(s)}</span><span class="v">${s.price}</span></div>`).join("")}</div>
+
+    <div class="section-title">📦 ${t("order_tracking")}</div>
+    ${DATA.laundryOrders.map(o=>`
+      <div class="card">
+        <div class="flex-between"><div class="card-title" style="margin:0">${o.id}</div><span class="price-tag">${money(o.amount)}</span></div>
+        <div class="stepper mt-8">
+          ${[0,1,2].map(step=>`<div class="step ${step<o.status?'done':step===o.status?'current':''}"><div class="dot">${step<=o.status?'✓':''}</div><div class="st-body"><div class="st-title">${stLabels[step]}</div></div></div>`).join("")}
+        </div>
+        ${o.status===2?`<div class="notice" style="margin:4px 0 0"><span class="n-ico">✅</span><span>${de?'Deine Wäsche ist abholbereit.':'La tua biancheria è pronta per il ritiro.'}</span></div>`:``}
+      </div>`).join("")}
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="laundryOrder()">➕ ${de?'Neue Bestellung':'Nuovo ordine'}</button>
+      <button class="btn btn-secondary" onclick="laundryQuote()">💰 ${de?'Offerte':'Preventivo'}</button>
+    </div>
+    <div class="btn-row mt-16">
+      <button class="btn btn-secondary" onclick="laundryChat()">💬 ${de?'Wäscherei kontaktieren':'Contatta la lavanderia'}</button>
+      <button class="btn btn-secondary" onclick="go('receipts')">🧾 ${de?'Belege':'Fatture'}</button>
+    </div>
+    <div class="concept-note" style="margin-top:16px"><span class="cn-badge">${de?'Neue Dienste':'Nuovi servizi'}</span><p>${de?'MyCSB kann dem CSB helfen, neue Dienste für externe Kunden zu entwickeln und zu bewerben.':'MyCSB può aiutare il CSB a sviluppare e promuovere nuovi servizi verso clienti esterni.'}</p></div>
+  `;
+}
+function laundryOrder() {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${de?'Neue Bestellung':'Nuovo ordine'}</h2>
+    <div class="field"><label>${de?"Dienst":"Servizio"}</label><select>${DATA.laundryServices.map(s=>`<option>${LL(s)}</option>`).join("")}</select></div>
+    <div class="field"><label>${de?"Abholung / Lieferung":"Ritiro / consegna"}</label>
+      <div class="chip-select"><button type="button" class="chip selected" onclick="pickChip(this)">${de?'Abholung':'Ritiro'}</button><button type="button" class="chip" onclick="pickChip(this)">${de?'Lieferung':'Consegna'}</button></div></div>
+    <div class="field"><label>${t("day")}</label><input type="date" value="2026-10-21"></div>
+    <button class="btn btn-primary btn-lg" onclick="(function(){requireLogin(function(){addToCart('Ordine lavanderia','Wäscherei-Auftrag',32.50);successSheet(t('order_confirmed'),'${de?'Du erhältst eine Mitteilung, wenn die Wäsche bereit ist.':'Riceverai una notifica quando la biancheria è pronta.'}');});})()">${t("confirm")}</button>`);
+}
+function laundryQuote() {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${de?'Offerte anfragen':'Richiedi preventivo'}</h2>
+    <div class="field"><label>${t("note_opt")}</label><textarea placeholder="${de?'Beschreibe deinen Bedarf…':'Descrivi la tua esigenza…'}"></textarea></div>
+    <button class="btn btn-primary btn-lg" onclick="successSheet(t('request_sent'),t('request_sent_sub'))">${t("send")}</button>`);
+}
+function laundryChat() {
+  const de = state.lang === 'de';
+  const bubbles = DATA.laundryChat.map(b=>`<div class="bubble ${b.from}">${de?b.de:b.it}<div class="b-time">${b.time}</div></div>`).join("");
+  openSheet(`<h2>💬 ${t("s_laundry")}</h2>
+    <div class="chat-thread" id="lchat" style="max-height:300px;overflow-y:auto">${bubbles}</div>
+    <div class="chat-input"><input id="lcin" placeholder="${de?'Nachricht…':'Messaggio…'}" onkeydown="if(event.key==='Enter')lSend()"><button onclick="lSend()">➤</button></div>`);
+}
+function lSend() {
+  const inp = $("#lcin"), th = $("#lchat"); if (!inp||!th||!inp.value.trim()) return;
+  const de = state.lang === 'de';
+  const now = new Date().toLocaleTimeString(de?'de-CH':'it-CH',{hour:'2-digit',minute:'2-digit'});
+  const me = document.createElement("div"); me.className="bubble me"; me.innerHTML=`${esc(inp.value)}<div class="b-time">${now}</div>`; th.appendChild(me); inp.value="";
+  th.scrollTop = th.scrollHeight;
+  setTimeout(()=>{ const r=document.createElement("div"); r.className="bubble them"; r.innerHTML=`${de?'Danke! Wir melden uns in Kürze.':'Grazie! Le rispondiamo a breve.'}<div class="b-time">${now}</div>`; th.appendChild(r); th.scrollTop=th.scrollHeight; }, 800);
+}
+
+/* -------- 10. Casa anziani -------- */
+function svcCareHome() {
+  const de = state.lang === 'de';
+  return svcHead("🌳","s_carehome", de?"Leben, Aktivitäten und Informationen.":"Vita, attività e informazioni.") + `
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?"Keine persönlichen Gesundheitsdaten der Bewohner.":"Nessuna informazione sanitaria personale degli ospiti."}</span></div>
     <div class="card">
-      ${DATA.contacts.map(c=>`
-        <div class="list-row">
-          <div class="lr-ico" style="${c.emergency?'background:#f2e2dc':''}">${c.icon}</div>
-          <div class="lr-body"><div class="lr-title">${L(c,'label')}</div><div class="lr-sub">${esc(c.value)}</div></div>
-          <a class="doc-actions" href="tel:${esc(c.value.replace(/\s/g,''))}"><button title="${t('call')}">📞</button></a>
-        </div>`).join("")}
+      <div class="card-title">${de?"Informationen":"Informazioni"}</div>
+      <div class="info-line"><span class="k">${de?"Besuchszeiten":"Orari visite"}</span><span class="v">10:00–12:00 · 14:00–20:00</span></div>
+      <div class="info-line"><span class="k">${de?"Kontakt":"Contatti"}</span><span class="v">+41 81 838 11 90</span></div>
     </div>
     <div class="card">
+      <div class="card-title">📅 ${de?"Aktivitätenkalender":"Calendario attività"}</div>
+      ${DATA.careActivities.map(a=>`<div class="info-line"><span class="k">${de?a.d_de:a.d_it}</span><span class="v">${a.icon} ${de?a.a_de:a.a_it}</span></div>`).join("")}
+    </div>
+    <div class="section-title">🎉 ${de?"Events für Angehörige":"Eventi per familiari"}</div>
+    ${DATA.careEvents.map((e,i)=>`
+      <div class="card">
+        <div style="display:flex;gap:12px"><div class="lr-ico" style="font-size:22px">${e.icon}</div>
+          <div style="flex:1"><div class="lr-title">${L(e,'title')}</div>
+            <div class="lr-sub">📅 ${e.date} · 🕐 ${e.time} · 📍 ${esc(e.place)}</div>
+            <p class="muted" style="margin:6px 0 0;font-size:.9rem">${L(e,'note')}</p>
+            <button class="btn btn-primary btn-sm mt-8" onclick="careJoin('${esc(L(e,'title'))}')">${t("participate")}</button>
+          </div></div>
+      </div>`).join("")}`;
+}
+function careJoin(title) {
+  const de = state.lang === 'de';
+  openSheet(`<h2>${t("participate")}</h2><p class="muted">${esc(title)}</p>
+    <div class="field"><label>${de?"Anzahl Teilnehmer":"Numero di partecipanti"}</label><select><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+    <button class="btn btn-primary btn-lg" onclick="successSheet('${de?'Teilnahme bestätigt':'Partecipazione confermata'}','${esc(title)}')">${t("confirm")}</button>`);
+}
+
+/* -------- 11. Eventi & novità -------- */
+let eventCat = "all";
+function svcEvents() {
+  const de = state.lang === 'de';
+  const list = DATA.events.filter(e => eventCat==="all" || e.cat===eventCat);
+  return `<div style="text-align:center;margin-bottom:6px"><div style="font-size:42px">📅</div><h1 class="page-title">${t("s_events")}</h1><p class="lead">${de?'Die digitale Pinnwand des CSB.':'La bacheca digitale del CSB.'}</p></div>
+    <div class="tabs" style="flex-wrap:nowrap">${DATA.eventCats.map(c=>`<button class="${eventCat===c.id?'active':''}" onclick="setEventCat('${c.id}')">${LL(c)}</button>`).join("")}</div>
+    ${list.map(e=>`
+      <div class="card">
+        <div style="display:flex;gap:12px"><div class="lr-ico" style="font-size:22px">${e.icon}</div>
+          <div style="flex:1"><div class="lr-title">${L(e,'title')}</div>
+            <div class="lr-sub">📅 ${e.date}${e.time?` · ${e.time}`:''}</div>
+            <p class="muted" style="margin:6px 0 0;font-size:.9rem">${L(e,'desc')}</p>
+            <div class="btn-row mt-8">
+              <button class="btn btn-primary btn-sm" style="width:100%" onclick="successSheet('${state.lang==='de'?'Angemeldet':'Iscrizione confermata'}','${esc(L(e,'title'))}')">${t("subscribe")}</button>
+              <button class="btn btn-secondary btn-sm" style="width:100%" onclick="toast('${de?'Zum Kalender hinzugefügt':'Aggiunto al calendario'}')">📅 ${t("add_calendar")}</button>
+            </div>
+            <button class="btn btn-ghost btn-sm mt-8" onclick="toast('${de?'Wir erinnern dich':'Ti ricorderemo'}')">🔔 ${t("remind")}</button>
+          </div></div>
+      </div>`).join("")}`;
+}
+function setEventCat(c) { eventCat = c; render(); }
+
+/* -------- 16. Contatti -------- */
+function svcContacts() {
+  const de = state.lang === 'de';
+  return svcHead("📞","s_contacts", de?"Alle Dienste und Nummern.":"Directory di tutti i servizi.") + `
+    <div class="card">${DATA.contacts.map(c=>`
+      <div class="list-row"><div class="lr-ico">${c.icon}</div>
+        <div class="lr-body"><div class="lr-title">${L(c,'label')}</div><div class="lr-sub">${esc(c.value)}</div></div>
+        <a class="doc-actions" href="tel:${esc(c.value.replace(/\s/g,''))}"><button title="${t('call')}">📞</button></a>
+      </div>`).join("")}</div>
+    <div class="card">
       <div class="card-title">📍 ${de?"Adresse":"Indirizzo"}</div>
-      <p class="muted mb-0">Centro Sanitario Bregaglia<br>Flin 5, 7606 Promontogno (GR)</p>
-      <p class="faint mt-8" style="margin-bottom:0">${de?"Standort Maloja":"Sede Maloja"}: Strada Cantonale 370, 7516 Maloja</p>
-      <div class="info-line" style="margin-top:8px"><span class="k">Email</span><span class="v">info@csbregaglia.ch</span></div>
-      <div class="info-line"><span class="k">Web</span><span class="v">www.csbregaglia.ch</span></div>
-      <div class="info-line"><span class="k">${de?"Besuchszeiten":"Orari di visita"}</span><span class="v">${de?DATA.org.visitHours_de:DATA.org.visitHours_it}</span></div>
+      <p class="muted mb-0">Centro Sanitario Bregaglia<br>${DATA.org.address_it}</p>
+      <p class="faint mt-8" style="margin-bottom:0">${DATA.org.address2_it}</p>
+      <div class="info-line" style="margin-top:8px"><span class="k">Email</span><span class="v">${DATA.org.email}</span></div>
+      <div class="info-line"><span class="k">Web</span><span class="v">${DATA.org.web}</span></div>
       <div style="border-radius:14px;margin-top:12px;overflow:hidden;border:1px solid var(--line);height:190px;background:#e8e8e8">
-        <iframe title="Centro Sanitario Bregaglia" width="100%" height="100%" style="border:0;display:block"
-          loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-          src="https://maps.google.com/maps?q=${CSB_MAPS_Q}&amp;z=15&amp;output=embed"></iframe>
+        <iframe title="CSB" width="100%" height="100%" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${CSB_MAPS_Q}&amp;z=15&amp;output=embed"></iframe>
       </div>
       <div class="btn-row mt-16">
         <a class="btn btn-secondary" href="tel:+41818381199" style="text-decoration:none">📞 ${t("call")}</a>
         <a class="btn btn-primary" href="https://www.google.com/maps/dir/?api=1&amp;destination=${CSB_MAPS_Q}" target="_blank" rel="noopener" style="text-decoration:none">🧭 ${t("directions")}</a>
       </div>
-      <a class="btn btn-ghost mt-8" href="https://www.google.com/maps/search/?api=1&amp;query=${CSB_MAPS_Q}" target="_blank" rel="noopener" style="text-decoration:none">${de?"In Google Maps öffnen":"Apri in Google Maps"} ↗</a>
-    </div>
-  `;
-}
-
-/* ---- 12. Eventi ---- */
-function svcEvents() {
-  const de = state.lang === 'de';
-  return svcHead("📅","s_events", de?"Veranstaltungen und Neuigkeiten des CSB.":"Eventi, corsi e novità del CSB.") + `
-    ${DATA.events.map((e,i)=>`
-      <div class="card">
-        <div style="display:flex;gap:12px">
-          <div class="lr-ico" style="font-size:24px">${e.icon}</div>
-          <div style="flex:1">
-            <div class="lr-title">${L(e,'title')}</div>
-            <div class="lr-sub">📅 ${e.date} · 🕐 ${e.time}</div>
-            <div class="lr-sub">📍 ${L(e,'place')}</div>
-            <p class="muted" style="margin:8px 0 0;font-size:.9rem">${L(e,'desc')}</p>
-            <button class="btn btn-primary btn-sm mt-8" onclick="eventSignup('${esc(L(e,'title'))}')">${de?"Anmelden":"Iscriviti"}</button>
-          </div>
-        </div>
-      </div>`).join("")}
-  `;
-}
-function eventSignup(title) {
-  successSheet(`<p class="muted">${esc(title)}</p>`);
+    </div>`;
 }
 
 /* ================= PRENOTAZIONI ================= */
 function viewBookings() {
   const de = state.lang === 'de';
-  const badge = (s) => s==='wait' ? `<span class="badge wait">${t('st_wait')}</span>` : `<span class="badge ok">${t('st_confirmed')}</span>`;
-  return `
-    <h1 class="page-title">${t("nav_bookings")}</h1>
+  const badge = (s) => s==='pending' ? `<span class="badge wait">${t("st_pending")}</span>` : `<span class="badge ok">${t("st_confirmed")}</span>`;
+  const upcoming = DATA.bookings.filter(b=>b.status!=='pending');
+  const pending = DATA.bookings.filter(b=>b.status==='pending');
+  const row = (a, withBadge) => `<div class="card"><div class="flex-between">
+      <div style="display:flex;gap:12px;align-items:center"><div class="lr-ico" style="font-size:22px">${a.icon}</div>
+      <div><div class="lr-title">${L(a,'title')}</div><div class="lr-sub">${L(a,'when')}</div></div></div>
+      ${withBadge?badge(a.status):''}</div></div>`;
+  return `<h1 class="page-title">${t("my_bookings")}</h1>
     <div class="tabs">
-      <button class="active" onclick="tabSwitch(this,'bk-future')">${de?"Zukünftig":"Futuri"}</button>
-      <button onclick="tabSwitch(this,'bk-past')">${de?"Vergangen":"Passati"}</button>
+      <button class="active" onclick="bkTab(this,'bk-up')">${t("st_upcoming")}</button>
+      <button onclick="bkTab(this,'bk-pend')">${t("st_pending")}</button>
+      <button onclick="bkTab(this,'bk-past')">${t("st_past")}</button>
     </div>
-    <div id="bk-future">
-      ${DATA.appointments.map(a=>`
-        <div class="card">
-          <div class="flex-between">
-            <div style="display:flex;gap:12px;align-items:center">
-              <div class="lr-ico" style="font-size:22px">${a.icon}</div>
-              <div><div class="lr-title">${L(a,'title')}</div><div class="lr-sub">${a.date} · ${a.time} · ${esc(a.who)}</div></div>
-            </div>
-            ${badge(a.status)}
-          </div>
-        </div>`).join("")}
-      <button class="btn btn-primary btn-lg mt-8" onclick="go('services')">➕ ${de?"Neue Buchung":"Nuova prenotazione"}</button>
-    </div>
-    <div id="bk-past" class="hidden">
-      ${DATA.pastAppointments.map(a=>`
-        <div class="card" style="opacity:.85">
-          <div style="display:flex;gap:12px;align-items:center">
-            <div class="lr-ico" style="font-size:22px">${a.icon}</div>
-            <div><div class="lr-title">${L(a,'title')}</div><div class="lr-sub">${a.date} · ${a.time} · ${esc(a.who)}</div></div>
-          </div>
-        </div>`).join("")}
-    </div>
-  `;
+    <div id="bk-up">${upcoming.map(a=>row(a,true)).join("") || empty()}</div>
+    <div id="bk-pend" class="hidden">${pending.map(a=>row(a,true)).join("") || empty()}</div>
+    <div id="bk-past" class="hidden">${DATA.bookingsPast.map(a=>row(a,false)).join("") || empty()}</div>`;
 }
-function tabSwitch(btn, id) {
-  btn.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  const cont = btn.closest(".view");
-  ["bk-future","bk-past","doc-health","doc-admin","doc-appt"].forEach(x => { const el = cont.querySelector("#"+x); if (el) el.classList.add("hidden"); });
-  const target = cont.querySelector("#"+id); if (target) target.classList.remove("hidden");
+function empty() { return `<div class="empty"><div class="e-ico">📭</div>${state.lang==='de'?'Nichts hier':'Niente qui'}</div>`; }
+function bkTab(btn, id) {
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active")); btn.classList.add("active");
+  ["bk-up","bk-pend","bk-past"].forEach(x=>{const e=$("#"+x); if(e) e.classList.add("hidden");});
+  $("#"+id).classList.remove("hidden");
 }
 
 /* ================= NOTIFICHE ================= */
 function viewNotifications() {
   const de = state.lang === 'de';
-  return `
-    <div class="flex-between">
-      <h1 class="page-title" style="margin:0">${t("nav_notifications")}</h1>
-      <button class="btn-ghost btn-sm" onclick="markAllRead()">${de?"Alle gelesen":"Segna letti"}</button>
-    </div>
-    <p class="lead">${de?"Ihr Mitteilungszentrum.":"Il tuo centro notifiche."}</p>
-    <div class="card">
-      ${DATA.notifications.map(n=>`
-        <div class="list-row clickable" onclick="openNotif('${n.id}')">
-          <div class="lr-ico">${n.icon}</div>
-          <div class="lr-body">
-            <div class="lr-title" style="${n.unread?'':'font-weight:600'}">${L(n,'title')} ${n.unread?'<span class="badge new" style="font-size:.6rem;padding:2px 7px">•</span>':''}</div>
-            <div class="lr-sub">${L(n,'sub')}</div>
-            <div class="faint" style="font-size:.78rem">${L(n,'time')}</div>
-          </div>
-        </div>`).join("")}
-    </div>
-  `;
+  return `<div class="flex-between"><h1 class="page-title" style="margin:0">${t("nav_notifications")}</h1>
+      <button class="btn-ghost btn-sm" onclick="markAllRead()">${de?'Alle gelesen':'Segna letti'}</button></div>
+    <div class="card mt-16">${DATA.notifications.map(n=>`
+      <div class="list-row">
+        <div class="lr-ico">${n.icon}</div>
+        <div class="lr-body"><div class="lr-title" style="${n.unread?'':'font-weight:600'}">${L(n,'title')} ${n.unread?'<span class="badge new" style="font-size:.6rem;padding:2px 6px">•</span>':''}</div>
+        <div class="faint" style="font-size:.78rem">${L(n,'time')}</div></div>
+      </div>`).join("")}</div>
+    <div class="section-title">${de?"Welche Mitteilungen erhalten":"Quali notifiche ricevere"}</div>
+    <div class="card">${DATA.notifPrefs.map(p=>`<div class="switch-row"><div class="sr-label">${LL(p)}</div><button class="switch ${p.on?'on':''}" onclick="prefToggle('${p.id}',this)"></button></div>`).join("")}</div>`;
 }
-function markAllRead() { DATA.notifications.forEach(n => n.unread = false); render(); }
-function openNotif(id) {
-  const n = DATA.notifications.find(x => x.id === id);
-  if (n) n.unread = false;
-  const de = state.lang === 'de';
-  openSheet(`
-    <div style="text-align:center;padding-top:8px"><div style="font-size:40px">${n.icon}</div></div>
-    <h2 style="text-align:center">${L(n,'title')}</h2>
-    <p class="muted text-center">${L(n,'sub')}</p>
-    <p class="faint text-center">${L(n,'time')}</p>
-    <button class="btn btn-primary" onclick="closeSheet();notifAction('${n.cat}')">${de?"Öffnen":"Apri"}</button>
-    <button class="btn btn-ghost" onclick="closeSheet()">${t("close")}</button>
-  `);
-}
-function notifAction(cat) {
-  const map = { referti:"profile", pasti:"meals", lavanderia:"laundry", spitex:"spitex", "casa anziani":"carehome", eventi:"events", appuntamenti:"bookings", fatture:"profile" };
-  const dest = map[cat] || "home";
-  if (dest === "profile") requireAuth("profile");
-  else if (["bookings"].includes(dest)) go(dest);
-  else go("service", dest);
-}
+function markAllRead() { DATA.notifications.forEach(n=>n.unread=false); render(); }
+function prefToggle(id, btn) { const p = DATA.notifPrefs.find(x=>x.id===id); if (p) p.on=!p.on; btn.classList.toggle("on"); }
 
 /* ================= PROFILO / AREA PERSONALE ================= */
 function viewProfile() {
   const de = state.lang === 'de';
   if (!state.authed) {
-    return `
-      <h1 class="page-title">${t("nav_profile")}</h1>
+    return `<h1 class="page-title">${t("nav_profile")}</h1>
       <div class="card text-center pad-lg">
         <div class="avatar" style="margin:6px auto 14px;width:70px;height:70px;font-size:1.6rem">${DATA.user.initials}</div>
-        <p class="muted">${de?"Melden Sie sich an, um Ihren persönlichen Bereich zu sehen: Dokumente, Termine, Rechnungen und Mitteilungen.":"Accedi per vedere la tua area personale: documenti, appuntamenti, fatture e comunicazioni."}</p>
-        <button class="btn btn-primary btn-lg" onclick="requireAuth('profile')">🔒 ${t("login_personal")}</button>
+        <p class="muted">${de?'Melde dich an, um deine Buchungen, Bestellungen und Einstellungen zu verwalten.':'Accedi per gestire le tue prenotazioni, gli ordini e le preferenze.'}</p>
+        <button class="btn btn-primary btn-lg" onclick="requireLogin(()=>render())">🔒 ${t("login")}</button>
       </div>
-      <div class="card">
-        <div class="card-title">${de?"Öffentlicher Zugang":"Accesso pubblico"}</div>
-        <p class="muted mb-0" style="font-size:.92rem">${de?"Ohne Anmeldung sehen Sie: Dienste, Öffnungszeiten, Menüs, Veranstaltungen und Kontakte.":"Senza accesso puoi vedere: servizi, orari, menù, eventi e contatti."}</p>
-      </div>
-    `;
+      <div class="card"><div class="card-title">${de?"Öffentlicher Zugang":"Accesso pubblico"}</div>
+        <p class="muted mb-0" style="font-size:.92rem">${de?'Ohne Anmeldung: Dienste, Menüs, Fachärzte, Events, Zeiten und Kontakte.':'Senza accesso: servizi, menù, specialisti, eventi, orari e contatti.'}</p></div>`;
   }
   const u = DATA.user;
+  const item = (icon, label, route) => `<div class="list-row clickable" onclick="${route}"><div class="lr-ico">${icon}</div><div class="lr-body"><div class="lr-title">${label}</div></div><div class="lr-arrow">›</div></div>`;
   return `
     <div class="profile-head">
       <div class="avatar">${u.initials}</div>
-      <div style="flex:1">
-        <div class="p-name">${esc(u.name)}</div>
-        <div class="p-id">${de?"Benutzer-Nr.":"N. utente"}: ${u.userId}</div>
-      </div>
-      <button class="btn-ghost" onclick="logout()" title="${t('logout')}" style="width:auto;font-size:1.3rem">⎋</button>
+      <div style="flex:1"><div class="p-name">${esc(u.name)}</div><div class="p-id">${u.userId}${u.staff?' · '+(de?'Mitarbeiterin':'Collaboratrice'):''}</div></div>
+      <button class="btn-ghost" onclick="logout()" style="width:auto;font-size:1.3rem">⎋</button>
     </div>
-
-    <div class="section-title" style="margin-top:8px">${t("personal_data")}</div>
     <div class="card">
-      <div class="info-line"><span class="k">${de?"Geburtsdatum":"Data di nascita"}</span><span class="v">${u.birth}</span></div>
-      <div class="info-line"><span class="k">Email</span><span class="v" style="font-size:.85rem">${esc(u.email)}</span></div>
-      <div class="info-line"><span class="k">${de?"Telefon":"Telefono"}</span><span class="v">${esc(u.phone)}</span></div>
-      <div class="info-line"><span class="k">${t("pref_language")}</span><span class="v">${state.lang==='it'?'Italiano':'Deutsch'}</span></div>
+      ${item("📅", t("my_bookings"), "go('bookings')")}
+      ${item("🛒", t("my_orders"), "go('bookings')")}
+      ${item("🍲", t("s_mealshome"), "go('service','mealshome')")}
+      ${item("🧺", t("s_laundry"), "go('service','laundry')")}
+      ${item("📅", t("s_events"), "go('service','events')")}
+      ${item("🧾", t("receipts"), "go('receipts')")}
+      ${item("🔔", t("s_reminders"), "go('service','reminders')")}
+      ${item("🔔", t("nav_notifications"), "go('notifications')")}
     </div>
-
-    <div class="section-title">🗂️ ${de?"Digitale Mappe":"Cartella digitale"}</div>
-    <div class="tabs">
-      <button class="active" onclick="tabSwitch(this,'doc-health')">${de?"Gesundheit":"Sanitari"}</button>
-      <button onclick="tabSwitch(this,'doc-admin')">${de?"Verwaltung":"Amministrativi"}</button>
-      <button onclick="tabSwitch(this,'doc-appt')">${t("appointments")}</button>
-    </div>
-    <div class="card" id="doc-health">
-      ${DATA.documents.health.map(d=>docRow(d)).join("")}
-    </div>
-    <div class="card hidden" id="doc-admin">
-      ${DATA.documents.admin.map(d=>docRow(d,true)).join("")}
-    </div>
-    <div class="card hidden" id="doc-appt">
-      ${DATA.appointments.map(a=>`<div class="doc-row"><div class="doc-ico">${a.icon}</div><div><div class="lr-title">${L(a,'title')}</div><div class="lr-sub">${a.date} · ${a.time}</div></div><div style="margin-left:auto">${a.status==='wait'?`<span class="badge wait">${t('st_wait')}</span>`:`<span class="badge ok">${t('st_confirmed')}</span>`}</div></div>`).join("")}
-    </div>
-
-    <div class="section-title">👨‍👩‍👧 ${t("authorized_family")}</div>
+    <div class="section-title">${t("preferences")}</div>
     <div class="card">
-      ${u.family.map(f=>`<div class="list-row"><div class="lr-ico">👤</div><div class="lr-body"><div class="lr-title">${esc(f.name)}</div><div class="lr-sub">${state.lang==='de'?f.rel_de:f.rel_it}</div></div></div>`).join("")}
+      <div class="switch-row"><div><div class="sr-label">${t("language")}</div></div>
+        <div class="lang-toggle"><button class="${state.lang==='it'?'active':''}" onclick="setLang('it')">IT</button><button class="${state.lang==='de'?'active':''}" onclick="setLang('de')">DE</button></div></div>
+      <div class="switch-row"><div class="sr-label">${de?'Push-Mitteilungen':'Notifiche push'}</div><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="switch-row clickable" onclick="go('concept')"><div class="sr-label">${t("privacy")} & ${t("concept_badge")}</div><span class="lr-arrow">›</span></div>
     </div>
-
-    <div class="section-title">🔐 ${t("privacy_settings")}</div>
-    <div class="card">
-      <div class="switch-row"><div><div class="sr-label">${de?"Angehörige können Dokumente sehen":"I familiari possono vedere i documenti"}</div></div><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
-      <div class="switch-row"><div><div class="sr-label">${de?"Fotos im Familienbereich erlauben":"Consenti foto nell'area famiglia"}</div></div><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
-      <div class="switch-row"><div><div class="sr-label">${de?"Push-Mitteilungen":"Notifiche push"}</div></div><button class="switch on" onclick="this.classList.toggle('on')"></button></div>
-    </div>
-
     <button class="btn btn-secondary" onclick="logout()">⎋ ${t("logout")}</button>
-    <div style="height:8px"></div>
-  `;
-}
-function docRow(d, admin) {
-  return `<div class="doc-row">
-    <div class="doc-ico">${d.icon}</div>
-    <div style="min-width:0"><div class="lr-title" style="font-size:.96rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${L(d,'title')}</div><div class="lr-sub">${d.date}${d.amount?` · <strong>${d.amount}</strong>`:''}</div></div>
-    <div class="doc-actions">
-      <button title="${t('view')}" onclick="viewDoc('${esc(L(d,'title'))}')">👁️</button>
-      <button title="${t('download')}" onclick="toast('${state.lang==='de'?'Download gestartet':'Download avviato'}')">⬇️</button>
-      <button title="${t('share')}" onclick="toast('${state.lang==='de'?'Link kopiert':'Link copiato'}')">🔗</button>
-    </div>
-  </div>`;
-}
-function viewDoc(title) {
-  const de = state.lang === 'de';
-  openSheet(`
-    <h2 style="font-size:1.15rem">${esc(title)}</h2>
-    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;min-height:280px">
-      <div style="text-align:center;border-bottom:2px solid var(--brown);padding-bottom:10px;margin-bottom:14px">
-        ${treeLogo('logo-tree')}
-        <strong style="display:block;color:var(--brown-dark)">Centro Sanitario Bregaglia</strong>
-        <span class="faint">${de?'DEMO-Dokument – keine echten Daten':'Documento DIMOSTRATIVO – dati non reali'}</span>
-      </div>
-      <p class="muted" style="font-size:.9rem">${esc(title)}</p>
-      <div style="height:10px;background:#f0e9db;border-radius:4px;margin:10px 0;width:90%"></div>
-      <div style="height:10px;background:#f0e9db;border-radius:4px;margin:10px 0;width:70%"></div>
-      <div style="height:10px;background:#f0e9db;border-radius:4px;margin:10px 0;width:80%"></div>
-      <div style="height:10px;background:#f0e9db;border-radius:4px;margin:10px 0;width:60%"></div>
-      <p class="faint" style="margin-top:20px">${de?'Patient: Maria Rossi · CSB-000125':'Paziente: Maria Rossi · CSB-000125'}</p>
-    </div>
-    <div class="btn-row mt-16">
-      <button class="btn btn-secondary" onclick="toast('${de?'Download gestartet':'Download avviato'}')">⬇️ ${t('download')}</button>
-      <button class="btn btn-primary" onclick="closeSheet()">${t('close')}</button>
-    </div>
-  `);
-}
-function logout() {
-  state.authed = false; state.familyUnlocked = false;
-  toast(state.lang==='de' ? "Abgemeldet" : "Disconnesso");
-  go("home");
+    <div style="height:8px"></div>`;
 }
 
-/* ================= MESSAGGISTICA ================= */
-function viewChatList() {
+/* ================= RICEVUTE ================= */
+function viewReceipts() {
   const de = state.lang === 'de';
-  return `
-    <div style="text-align:center;margin-bottom:6px"><div style="font-size:40px">💬</div>
-    <h1 class="page-title">${t("s_messages")}</h1>
-    <p class="lead">${de?"Sichere Nachrichten – wählen Sie einen Dienst.":"Messaggistica sicura – scegli un servizio."}</p></div>
-    <div class="card">
-      ${CHAT_SERVICES.map(s=>`
-        <div class="list-row clickable" onclick="openChatThread('${s.id}')">
-          <div class="lr-ico">${s.icon}</div>
-          <div class="lr-body"><div class="lr-title">${t(s.key)}</div></div>
-          <div class="lr-arrow">›</div>
-        </div>`).join("")}
-    </div>
-    <div class="notice"><span class="n-ico">🔒</span><span>${de?"Demo-Chat mit vorbereiteten Nachrichten.":"Chat dimostrativa con messaggi già preparati."}</span></div>
-  `;
-}
-function openChatThread(svc) { go("chatThread", svc); }
-function viewChatThread() {
-  const svc = state.param;
-  const de = state.lang === 'de';
-  const svcObj = CHAT_SERVICES.find(s => s.id === svc) || DATA.services.find(s=>s.id===svc);
-  const svcName = svcObj ? t(svcObj.key) : "";
-  const preset = DATA.chatPresets[svc] || DATA.chatPresets.default;
-  const bubbles = preset.map(b => `
-    <div class="bubble ${b.from}">${de?b.de:b.it}<div class="b-time">${b.time}</div></div>`).join("");
-  return `
-    <div style="text-align:center;margin:-6px 0 8px"><div class="lr-ico" style="margin:0 auto;font-size:22px">${svcObj?svcObj.icon:'💬'}</div>
-    <strong style="color:var(--brown-dark)">${esc(svcName)}</strong></div>
-    <div class="chat-thread" id="chat-thread">${bubbles}</div>
-    <div class="chat-input">
-      <input id="chat-in" placeholder="${de?'Nachricht schreiben…':'Scrivi un messaggio…'}" onkeydown="if(event.key==='Enter')sendChat()">
-      <button onclick="sendChat()">➤</button>
-    </div>
-  `;
-}
-function sendChat() {
-  const inp = $("#chat-in");
-  const thread = $("#chat-thread");
-  if (!inp || !thread) return;
-  const val = inp.value.trim();
-  if (!val) return;
-  const de = state.lang === 'de';
-  const now = new Date().toLocaleTimeString(de?'de-CH':'it-CH', {hour:'2-digit',minute:'2-digit'});
-  const me = document.createElement("div");
-  me.className = "bubble me";
-  me.innerHTML = `${esc(val)}<div class="b-time">${now}</div>`;
-  thread.appendChild(me);
-  inp.value = "";
-  thread.parentElement.scrollTop = thread.scrollHeight;
-  setTimeout(() => {
-    const rep = document.createElement("div");
-    rep.className = "bubble them";
-    rep.innerHTML = `${de?'Vielen Dank für Ihre Nachricht. Wir melden uns in Kürze.':'Grazie per il suo messaggio. Le risponderemo a breve.'}<div class="b-time">${now}</div>`;
-    thread.appendChild(rep);
-    const main = $(".app-main"); if (main) main.scrollTop = main.scrollHeight;
-  }, 900);
+  if (!DATA.receipts.length) return `<h1 class="page-title">${t("receipts")}</h1>${empty()}`;
+  return `<h1 class="page-title">${t("receipts")}</h1>
+    <div class="card">${DATA.receipts.map(r=>`<div class="doc-row"><div class="doc-ico">🧾</div>
+      <div style="min-width:0"><div class="lr-title" style="font-size:.95rem">${L(r,'desc')}</div><div class="lr-sub">${r.date}</div></div>
+      <div style="margin-left:auto;font-weight:800;color:var(--brown-dark)">${money(r.amount)}</div></div>`).join("")}</div>`;
 }
 
-/* ================= PAGINA FINALE ================= */
-function viewFinal() {
+/* ================= CONCEPT ================= */
+function viewConcept() {
   const de = state.lang === 'de';
-  return `
-    <div style="text-align:center;padding:14px 0">
-      ${treeLogo('logo-tree')}
-      <h1 style="font-size:2rem;margin:12px 0 4px;color:var(--wine)">MyCSB</h1>
-      <p style="font-size:1.15rem;font-weight:700;color:var(--brown-soft)">${t("final_slogan")}</p>
-    </div>
+  return `<div style="text-align:center;padding:10px 0">${fullLogo('logo-full')}
+      <h1 style="font-size:1.8rem;margin:10px 0 2px;color:var(--wine)">MyCSB</h1>
+      <p style="font-weight:700;color:var(--brown-soft)">${t("claim")}</p>
+      <p class="muted">${t("claim_sub")}</p></div>
     <div class="card pad-lg">
-      <p>${de?"MyCSB will die Beziehung zwischen dem Gesundheitszentrum Bergell, den Bürgerinnen und Bürgern und den Familien vereinfachen und die Dienste zugänglicher, transparenter und näher an den Menschen machen.":"MyCSB vuole semplificare il rapporto tra il Centro Sanitario Bregaglia, i cittadini e le famiglie, rendendo i servizi più accessibili, trasparenti e vicini alle persone."}</p>
-      <p class="mb-0">${de?"Das Projekt kann schrittweise entwickelt werden – ausgehend von Informationsdiensten und Buchungen bis hin zur künftigen Integration von Dokumenten und digitalen Gesundheitsdiensten.":"Il progetto può essere sviluppato gradualmente, partendo dai servizi informativi e dalle prenotazioni, per arrivare in futuro all'integrazione con documenti e servizi sanitari digitali."}</p>
+      <span class="cn-badge" style="background:var(--brown-soft);color:#fff;display:inline-block;font-size:.7rem;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">${t("concept_badge")}</span>
+      <p class="mb-0" style="font-size:.95rem">${t("concept_text")}</p>
     </div>
-    <div class="section-title">${de?"Mögliche zukünftige Entwicklungen":"Possibili sviluppi futuri"}</div>
     <div class="card">
-      ${(de?["Online-Zahlungen","Integration mit persönlichem Kalender","Erweiterte Authentifizierung","Vollständige Übersetzung","Anbindung an CSB-Software"]:["Pagamenti online","Integrazione con calendario personale","Autenticazione avanzata","Traduzione completa","Collegamento ai software CSB"]).map(x=>`<div class="list-row"><div class="lr-ico">🚀</div><div class="lr-body"><div class="lr-title" style="font-size:.95rem;font-weight:600">${x}</div></div></div>`).join("")}
+      <div class="card-title">${de?"Was MyCSB ist":"Cos'è MyCSB"}</div>
+      <p class="muted" style="font-size:.92rem">${de?'MyCSB ist der digitale Schalter der Dienste des Gesundheitszentrums Bergell. Es verbindet das CSB mit Bürgern, Nutzern, Angehörigen, Mitarbeitenden, externen Kunden und Partner-Fachpersonen.':'MyCSB è lo sportello digitale dei servizi del Centro Sanitario Bregaglia. Mette in collegamento il CSB con cittadini, utenti, familiari, collaboratori, clienti esterni e professionisti partner.'}</p>
+      <div class="pill-row">${(de?['Information','Buchung','Verkauf','Kommunikation','Events','Vorsorge','Promotion']:['Informazione','Prenotazione','Vendita','Comunicazione','Eventi','Prevenzione','Promozione']).map(x=>`<span class="badge info">${x}</span>`).join("")}</div>
     </div>
-    <button class="btn btn-primary btn-lg" onclick="go('home')">🏠 ${de?"Zur Startseite":"Torna alla home"}</button>
-  `;
+    <div class="notice"><span class="n-ico">ℹ️</span><span>${de?'MyCSB ist KEINE Krankenakte, ersetzt weder die klinische Software noch die internen Kommunikationsmittel des Personals.':'MyCSB NON è una cartella clinica, non sostituisce i software sanitari né gli strumenti interni di comunicazione del personale.'}</span></div>
+    <button class="btn btn-primary btn-lg" onclick="go('home')">🏠 ${de?'Zur Startseite':'Torna alla home'}</button>`;
 }
 
-/* ------------------- Init ------------------- */
-window.state = state; // esposto per debug
-document.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  if (params.get("skip") === "1") state.route = "home";
-  render();
-});
+/* ------------- Init ------------- */
+window.state = state;
+document.addEventListener("DOMContentLoaded", () => { render(); });
