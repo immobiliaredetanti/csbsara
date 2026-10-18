@@ -74,8 +74,8 @@ function pickChip(btn) {
 }
 
 /* ------------- Logo ------------- */
-function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=13" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
-function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=13" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=14" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=14" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
 
 /* ------------- Login ------------- */
 function loginSheet(after) {
@@ -191,7 +191,7 @@ function renderWelcome() {
     <h1 style="font-size:2rem;margin:8px 0 2px;color:var(--wine)">MyCSB</h1>
     <p style="font-weight:700;color:var(--brown-soft);margin:0 0 4px">${t("subtitle")}</p>
     <p class="muted" style="max-width:300px">${t("welcome_msg")}</p>
-    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=13" alt="QR" width="100%" height="100%"></div>
+    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=14" alt="QR" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona per accedere':'Scannen zum Öffnen'}</p>
     <div style="width:100%;max-width:300px;margin-top:10px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>
@@ -210,7 +210,7 @@ function viewHome() {
     <div class="feature-card" onclick="go('${f.go[0]}','${f.go[1]}')">
       <div class="f-img" style="background:var(--cream-2)">
         <span class="f-emoji">${f.icon}</span>
-        ${f.img ? `<img class="f-photo" src="${f.img}?v=13" alt="" style="object-position:${f.imgpos||'center'}" onerror="this.remove()">` : ''}
+        ${f.img ? `<img class="f-photo" src="${f.img}?v=14" alt="" style="object-position:${f.imgpos||'center'}" onerror="this.remove()">` : ''}
       </div>
       <div class="f-body"><div class="f-tag">${L(f,'tag')}</div><div class="f-title">${L(f,'title')}</div></div>
     </div>`).join("");
@@ -237,10 +237,14 @@ function viewHome() {
   }
 
   return `
-    <div class="welcome" style="padding:18px 16px 20px">
-      ${treeLogo('logo-tree')}
-      <h1 style="font-size:1.5rem;margin:6px 0 2px">${t("welcome_title")}</h1>
-      <p class="subtitle" style="font-size:.95rem">${t("subtitle")}</p>
+    <div class="welcome">
+      <img class="hero-photo" src="assets/photos/hero.jpg?v=14" alt="Centro Sanitario Bregaglia" onerror="this.remove()">
+      <div class="hero-fade"></div>
+      <div class="hero-content">
+        ${treeLogo('logo-tree')}
+        <h1 style="font-size:1.5rem;margin:4px 0 2px">${t("welcome_title")}</h1>
+        <p class="subtitle" style="font-size:.95rem">${t("subtitle")}</p>
+      </div>
     </div>
 
     <div class="search-bar">
