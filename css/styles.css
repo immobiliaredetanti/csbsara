@@ -641,7 +641,8 @@ p { margin: 0 0 12px; }
   background:var(--white); border:1px solid var(--line-soft); border-radius:var(--radius);
   box-shadow:var(--shadow-sm); overflow:hidden;
 }
-.feature-card .f-img { height:96px; display:flex; align-items:center; justify-content:center; font-size:40px; }
+.feature-card .f-img { position:relative; height:120px; display:flex; align-items:center; justify-content:center; font-size:40px; overflow:hidden; }
+.feature-card .f-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .feature-card .f-body { padding:12px 14px; }
 .feature-card .f-tag { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--wine); }
 .feature-card .f-title { font-weight:700; color:var(--brown-dark); margin-top:3px; line-height:1.3; }

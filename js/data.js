@@ -133,13 +133,13 @@ const DATA = {
     { id:"contacts",    icon:"📞", key:"s_contacts",    sub_it:"Tutti i numeri utili", sub_de:"Alle nützlichen Nummern" },
   ],
 
-  // In evidenza (home)
+  // In evidenza (home) – img: foto in assets/photos/ (fallback automatico all'emoji se mancante)
   featured: [
-    { icon:"🍲", tag_it:"Caffetteria", tag_de:"Cafeteria", title_it:"Menù di oggi", title_de:"Tagesmenü", go:["service","cafeteria"] },
-    { icon:"🧴", tag_it:"Specialisti", tag_de:"Fachärzte", title_it:"Il dermatologo sarà presente il 15 ottobre", title_de:"Der Hautarzt ist am 15. Oktober da", go:["service","specialists"] },
-    { icon:"🤸", tag_it:"Movimento", tag_de:"Bewegung", title_it:"Nuovo corso di ginnastica dolce", title_de:"Neuer Kurs: sanfte Gymnastik", go:["service","physio"] },
-    { icon:"🍂", tag_it:"Casa anziani", tag_de:"Altersheim", title_it:"Festa d'autunno alla Casa anziani", title_de:"Herbstfest im Altersheim", go:["service","carehome"] },
-    { icon:"🧺", tag_it:"Novità", tag_de:"Neu", title_it:"Scopri il servizio lavanderia", title_de:"Entdecke die Wäscherei", go:["service","laundry"] },
+    { icon:"🍲", img:"assets/photos/caffetteria.jpg", tag_it:"Caffetteria", tag_de:"Cafeteria", title_it:"Menù di oggi", title_de:"Tagesmenü", go:["service","cafeteria"] },
+    { icon:"🧴", img:"assets/photos/specialisti.jpg", tag_it:"Specialisti", tag_de:"Fachärzte", title_it:"Il dermatologo sarà presente il 15 ottobre", title_de:"Der Hautarzt ist am 15. Oktober da", go:["service","specialists"] },
+    { icon:"🤸", img:"assets/photos/fisioterapia.jpg", tag_it:"Movimento", tag_de:"Bewegung", title_it:"Nuovo corso di ginnastica dolce", title_de:"Neuer Kurs: sanfte Gymnastik", go:["service","physio"] },
+    { icon:"🍂", img:"assets/photos/casa-anziani.jpg", tag_it:"Casa anziani", tag_de:"Altersheim", title_it:"Festa d'autunno alla Casa anziani", title_de:"Herbstfest im Altersheim", go:["service","carehome"] },
+    { icon:"🧺", img:"assets/photos/lavanderia.jpg", tag_it:"Novità", tag_de:"Neu", title_it:"Scopri il servizio lavanderia", title_de:"Entdecke die Wäscherei", go:["service","laundry"] },
   ],
 
   // Caffetteria
