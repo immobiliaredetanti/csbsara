@@ -135,7 +135,7 @@ const DATA = {
 
   // In evidenza (home) – img: foto in assets/photos/ (fallback automatico all'emoji se mancante)
   featured: [
-    { icon:"🍲", img:"assets/photos/caffetteria.jpg", tag_it:"Caffetteria", tag_de:"Cafeteria", title_it:"Menù di oggi", title_de:"Tagesmenü", go:["service","cafeteria"] },
+    { icon:"🍲", img:"assets/photos/caffetteria.jpg", imgpos:"center 45%", tag_it:"Caffetteria", tag_de:"Cafeteria", title_it:"Menù di oggi", title_de:"Tagesmenü", go:["service","cafeteria"] },
     { icon:"🧴", img:"assets/photos/specialisti.jpg", imgpos:"center 18%", tag_it:"Specialisti", tag_de:"Fachärzte", title_it:"Il dermatologo sarà presente il 15 ottobre", title_de:"Der Hautarzt ist am 15. Oktober da", go:["service","specialists"] },
     { icon:"🤸", img:"assets/photos/fisioterapia.jpg", tag_it:"Movimento", tag_de:"Bewegung", title_it:"Nuovo corso di ginnastica dolce", title_de:"Neuer Kurs: sanfte Gymnastik", go:["service","physio"] },
     { icon:"🍂", img:"assets/photos/casa-anziani.jpg", tag_it:"Casa anziani", tag_de:"Altersheim", title_it:"Festa d'autunno alla Casa anziani", title_de:"Herbstfest im Altersheim", go:["service","carehome"] },
