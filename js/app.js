@@ -74,8 +74,8 @@ function pickChip(btn) {
 }
 
 /* ------------- Logo ------------- */
-function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=14" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
-function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=14" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=15" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=15" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
 
 /* ------------- Login ------------- */
 function loginSheet(after) {
@@ -191,7 +191,7 @@ function renderWelcome() {
     <h1 style="font-size:2rem;margin:8px 0 2px;color:var(--wine)">MyCSB</h1>
     <p style="font-weight:700;color:var(--brown-soft);margin:0 0 4px">${t("subtitle")}</p>
     <p class="muted" style="max-width:300px">${t("welcome_msg")}</p>
-    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=14" alt="QR" width="100%" height="100%"></div>
+    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=15" alt="QR" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona per accedere':'Scannen zum Öffnen'}</p>
     <div style="width:100%;max-width:300px;margin-top:10px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>
@@ -210,7 +210,7 @@ function viewHome() {
     <div class="feature-card" onclick="go('${f.go[0]}','${f.go[1]}')">
       <div class="f-img" style="background:var(--cream-2)">
         <span class="f-emoji">${f.icon}</span>
-        ${f.img ? `<img class="f-photo" src="${f.img}?v=14" alt="" style="object-position:${f.imgpos||'center'}" onerror="this.remove()">` : ''}
+        ${f.img ? `<img class="f-photo" src="${f.img}?v=15" alt="" style="object-position:${f.imgpos||'center'}" onerror="this.remove()">` : ''}
       </div>
       <div class="f-body"><div class="f-tag">${L(f,'tag')}</div><div class="f-title">${L(f,'title')}</div></div>
     </div>`).join("");
@@ -238,7 +238,7 @@ function viewHome() {
 
   return `
     <div class="welcome">
-      <img class="hero-photo" src="assets/photos/hero.jpg?v=14" alt="Centro Sanitario Bregaglia" onerror="this.remove()">
+      <img class="hero-photo" src="assets/photos/hero.jpg?v=15" alt="Centro Sanitario Bregaglia" onerror="this.remove()">
       <div class="hero-fade"></div>
       <div class="hero-content">
         ${treeLogo('logo-tree')}
@@ -350,10 +350,29 @@ function viewService() {
     default: return `<div class="empty">…</div>`;
   }
 }
+/* Foto banner per le pagine servizio (param → [file, posizione ritaglio]) */
+const SERVICE_PHOTOS = {
+  eat:         ["caffetteria.jpg", "center 45%"],
+  cafeteria:   ["caffetteria.jpg", "center 45%"],
+  specialists: ["specialisti.jpg", "center 18%"],
+  physio:      ["fisioterapia.jpg", "center 40%"],
+  carehome:    ["casa-anziani.jpg", "center 55%"],
+  laundry:     ["lavanderia.jpg", "center"],
+  spitex:      ["spitex.jpg", "center"],
+};
 function svcHead(icon, titleKey, sub) {
+  const title = (typeof titleKey === 'string' && I18N.it[titleKey]) ? t(titleKey) : titleKey;
+  const ph = SERVICE_PHOTOS[state.param];
+  if (ph) {
+    return `<div class="svc-banner">
+      <img src="assets/photos/${ph[0]}?v=15" alt="" style="object-position:${ph[1]}" onerror="this.closest('.svc-banner').classList.add('nophoto')">
+      <div class="svc-banner-fade"></div>
+      <div class="svc-banner-txt"><div class="sb-icon">${icon}</div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div>
+    </div>`;
+  }
   return `<div style="text-align:center;margin-bottom:8px">
     <div style="font-size:42px">${icon}</div>
-    <h1 class="page-title" style="margin-top:2px">${typeof titleKey==='string'&&I18N.it[titleKey]?t(titleKey):esc(titleKey)}</h1>
+    <h1 class="page-title" style="margin-top:2px">${esc(title)}</h1>
     <p class="lead">${esc(sub)}</p></div>`;
 }
 
