@@ -74,8 +74,8 @@ function pickChip(btn) {
 }
 
 /* ------------- Logo ------------- */
-function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=8" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
-function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=8" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=9" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=9" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
 
 /* ------------- Login ------------- */
 function loginSheet(after) {
@@ -191,7 +191,7 @@ function renderWelcome() {
     <h1 style="font-size:2rem;margin:8px 0 2px;color:var(--wine)">MyCSB</h1>
     <p style="font-weight:700;color:var(--brown-soft);margin:0 0 4px">${t("subtitle")}</p>
     <p class="muted" style="max-width:300px">${t("welcome_msg")}</p>
-    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=8" alt="QR" width="100%" height="100%"></div>
+    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=9" alt="QR" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona per accedere':'Scannen zum Öffnen'}</p>
     <div style="width:100%;max-width:300px;margin-top:10px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>

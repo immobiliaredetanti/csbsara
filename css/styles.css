@@ -7,8 +7,8 @@
 :root {
   /* Palette UFFICIALE CSB – sincronizzata con csbregaglia.ch
      Bordeaux (accento), taupe (neutro), bianco/grigio, testo grigio scuro. */
-  --cream: #f4f2ec;      /* sfondo app – bianco caldo */
-  --cream-2: #eae4d8;    /* superfici tenui, chip, icone */
+  --cream: #ece5d6;      /* sfondo app – beige caldo (più contrasto con le card bianche) */
+  --cream-2: #e4dcc9;    /* superfici tenui, chip, icone */
   --beige: #e2dccc;
   --beige-dark: #c9bda6; /* taupe chiaro – bordi */
   --sand: #b3a082;
@@ -38,9 +38,9 @@
 
   /* Superfici */
   --line: #e5e0d5;
-  --line-soft: #efeae0;
-  --shadow: 0 6px 22px rgba(60, 54, 48, 0.10);
-  --shadow-sm: 0 2px 8px rgba(60, 54, 48, 0.08);
+  --line-soft: #e7ddca;
+  --shadow: 0 6px 22px rgba(60, 54, 48, 0.12);
+  --shadow-sm: 0 2px 10px rgba(60, 54, 48, 0.10);
   --shadow-lg: 0 14px 40px rgba(60, 54, 48, 0.18);
 
   /* Forma */
@@ -232,11 +232,12 @@ p { margin: 0 0 12px; }
 
 /* ---------- Home ---------- */
 .welcome {
-  background: linear-gradient(160deg, var(--cream) 0%, var(--cream-2) 100%);
+  background: linear-gradient(160deg, #fffdf8 0%, #f6efe2 100%);
   border-radius: var(--radius-lg);
   padding: 22px 18px 24px;
   text-align: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--beige-dark);
+  box-shadow: var(--shadow-sm);
   margin-bottom: 20px;
 }
 .welcome .logo-tree { width: 78px; height: 78px; margin: 0 auto 10px; }
