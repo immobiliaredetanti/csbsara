@@ -17,6 +17,7 @@ const I18N = {
     nav_notifications: "Notifiche", nav_profile: "Profilo",
     // generico
     search_ph: "Cosa stai cercando?",
+    frequent_searches: "Ricerche frequenti",
     featured: "In evidenza",
     main_services: "Servizi principali",
     book: "Prenota", order: "Ordina", takeaway: "Ordina Takeaway",
@@ -72,6 +73,7 @@ const I18N = {
     nav_home: "Home", nav_services: "Dienste", nav_bookings: "Buchungen",
     nav_notifications: "Mitteilungen", nav_profile: "Profil",
     search_ph: "Wonach suchst du?",
+    frequent_searches: "Häufige Suchen",
     featured: "Aktuell",
     main_services: "Hauptdienste",
     book: "Buchen", order: "Bestellen", takeaway: "Take-away bestellen",

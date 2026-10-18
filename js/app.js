@@ -74,8 +74,8 @@ function pickChip(btn) {
 }
 
 /* ------------- Logo ------------- */
-function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=7" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
-function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=7" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function treeLogo(cls = "logo-tree") { return `<img src="assets/logo-csb.svg?v=8" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
+function fullLogo(cls = "logo-full") { return `<img src="assets/logo-csb-full.svg?v=8" class="${cls}" alt="Centro Sanitario Bregaglia">`; }
 
 /* ------------- Login ------------- */
 function loginSheet(after) {
@@ -191,7 +191,7 @@ function renderWelcome() {
     <h1 style="font-size:2rem;margin:8px 0 2px;color:var(--wine)">MyCSB</h1>
     <p style="font-weight:700;color:var(--brown-soft);margin:0 0 4px">${t("subtitle")}</p>
     <p class="muted" style="max-width:300px">${t("welcome_msg")}</p>
-    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=7" alt="QR" width="100%" height="100%"></div>
+    <div class="qr-box" style="width:160px;height:160px"><img src="assets/qr.svg?v=8" alt="QR" width="100%" height="100%"></div>
     <p class="faint" style="margin-top:-6px">${state.lang==='it'?'Scansiona per accedere':'Scannen zum Öffnen'}</p>
     <div style="width:100%;max-width:300px;margin-top:10px">
       <button class="btn btn-primary btn-lg" onclick="go('home')">${state.lang==='it'?'Apri MyCSB':'MyCSB öffnen'} →</button>
@@ -245,8 +245,9 @@ function viewHome() {
       <input type="text" placeholder="${t("search_ph")}" oninput="liveSearch(this.value)" onfocus="liveSearch(this.value)">
     </div>
     <div id="search-results"></div>
+    <div class="freq-label">${t("frequent_searches")}</div>
     <div class="search-chips">
-      ${["dermatologo","pranzo","lavanderia","fisioterapia","palestra","Spitex"].map(q=>`<button class="sc" onclick="chipSearch('${q}')">${q}</button>`).join("")}
+      ${[{it:"Dermatologo",de:"Dermatologe"},{it:"Pranzo",de:"Mittagessen"},{it:"Lavanderia",de:"Wäscherei"},{it:"Fisioterapia",de:"Physiotherapie"},{it:"Palestra",de:"Fitnessraum"},{it:"Spitex",de:"Spitex"}].map(q=>{const l=state.lang==='de'?q.de:q.it;return `<button class="sc" onclick="chipSearch('${l}')">${l}</button>`;}).join("")}
     </div>
 
     ${personal}

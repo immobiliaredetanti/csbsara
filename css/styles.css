@@ -626,8 +626,11 @@ p { margin: 0 0 12px; }
 }
 .search-bar input:focus { outline:none; border-color: var(--brown-soft); box-shadow: 0 0 0 3px rgba(154,143,121,.18); }
 .search-bar .s-ico { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:1.05rem; color: var(--ink-faint); }
-.search-chips { display:flex; gap:8px; flex-wrap:wrap; margin:-6px 0 16px; }
-.search-chips .sc { border:1px solid var(--line); background:var(--white); border-radius:20px; padding:6px 12px; font-size:.85rem; font-weight:700; color:var(--brown-soft); cursor:pointer; }
+.freq-label { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-faint); margin:2px 2px 8px; }
+.search-chips { display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; margin:0 0 18px; padding-bottom:2px; }
+.search-chips::-webkit-scrollbar { display:none; }
+.search-chips .sc { flex:0 0 auto; border:1px solid var(--line); background:transparent; border-radius:20px; padding:7px 14px; font-size:.84rem; font-weight:700; color:var(--brown-soft); cursor:pointer; white-space:nowrap; }
+.search-chips .sc:hover { background:var(--white); border-color:var(--beige-dark); }
 
 /* In evidenza – carosello */
 .carousel { display:flex; gap:12px; overflow-x:auto; padding:2px 0 10px; scroll-snap-type:x mandatory; }
